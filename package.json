@@ -1,0 +1,53 @@
+{
+	"name": "game-cli-builder",
+	"description": "A tool for creating command line interfaces for games",
+	"version": "0.0.1",
+	"repository": "TODO",
+	"author": "dev <xfoocom@gmail.com>",
+	"license": "MIT",
+	"keywords": [
+		"web",
+		"browser",
+		"library",
+		"util",
+		"cli",
+		"games",
+		"builder"
+	],
+	"scripts": {
+		"clean": "rm -rf ./dist",
+		"compile:es5": "rm -rf ./dist/lib/es5 && npx tsc --build tsconfig.es5.json",
+		"compile:es6": "rm -rf ./dist/lib/es6 && npx tsc --build tsconfig.es6.json",
+		"compile:lib": "npm run compile:es5 && npm run compile:es6",
+		"compile:mocks:es5": "rm -rf ./dist/mocks/es5 2>/dev/null && npx npx tsc --build tsconfig.mocks.es5.json",
+		"compile:mocks:es6": "rm -rf ./dist/mocks/es6 2>/dev/null && npx npx tsc --build tsconfig.mocks.es6.json",
+		"compile:mocks": "npm run compile:mocks:es5 && npm run compile:mocks:es6",
+		"compile:demo:cli": "rm -rf ./dist/demo/cli && npx tsc --build src/demo/cli/tsconfig.demo.json",
+		"compile": "npm run clean && npm run compile:lib && npm run compile:mocks && npm run compile:demo:cli",
+		"demo:cli:lib": "npm run compile && node src/demo/cli/index.cjs",
+		"demo:cli:ts": "npx ts-node -P src/demo/cli/tsconfig.demo.json src/demo/cli/index.ts",
+		"demo:cli": "npm run demo:cli:lib",
+		"demo:web": "cd src/demo/web && npm run dev",
+		"test": "npm run clean && npx jest --config jest.config.js",
+		"test:watch": "npm run clean && npx jest --config jest.config.js --watch",
+		"test:coverage": "npm run clean && npx jest --config jest.config.js --coverage"
+	},
+	"devDependencies": {
+		"@types/jest": "^29.5.14",
+		"@types/node": "^24.1.0",
+		"@types/object-hash": "^3.0.6",
+		"bem-cn": "^3.0.1",
+		"clsx": "^2.1.1",
+		"jest": "^29.7.0",
+		"jest-transform-stub": "^2.0.0",
+		"prettier": "^3.5.3",
+		"ts-jest": "^29.3.2",
+		"typescript": "^5.8.3"
+	},
+	"dependencies": {
+		"i18next": "^25.3.6",
+		"object-hash": "^3.0.0",
+		"react-markdown": "^10.1.0",
+		"remark-gfm": "^4.0.1"
+	}
+}

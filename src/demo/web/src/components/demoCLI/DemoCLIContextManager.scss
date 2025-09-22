@@ -1,0 +1,33 @@
+.cli {
+	// From: https://css-tricks.com/old-timey-terminal-styling/
+	// background: linear-gradient(to left top, rgba(0, 150, 0, 0.75), 10%, black);
+	text-shadow: 0 0 5px #c8c8c8;
+	&::after {
+		width: calc(100% - 5px);
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		background: repeating-linear-gradient(
+			0deg,
+			rgba(0, 0, 0, 0.15),
+			rgba(0, 0, 0, 0.15) 1px,
+			transparent 1px,
+			transparent 2px
+		);
+		pointer-events: none;
+	}
+
+	&__input,
+	&__input:focus {
+		width: 100%;
+		border: 0 none;
+		margin: 0 0 16px 0;
+		outline: none;
+		background-color: rgba(0, 0, 0, 0);
+		font:
+			1.3rem Inconsolata,
+			monospace;
+		text-shadow: 0 0 5px #c8c8c8;
+	}
+}

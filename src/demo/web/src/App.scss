@@ -1,0 +1,64 @@
+$NavigatorBarHeight: 130px;
+
+#root {
+	width: 100%;
+	height: 100%;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	font:
+		1.3rem Inconsolata,
+		monospace;
+}
+
+.app {
+	width: 100%;
+	height: 100%;
+	button {
+		padding: 0.2em 0.6em;
+	}
+
+	&__navigation-bar {
+		position: fixed;
+		width: 100%;
+		height: $NavigatorBarHeight;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		z-index: 1;
+		background-color: #121212;
+		color: #c8c8c8;
+
+		&__options {
+			height: 40px;
+			width: 100%;
+			display: flex;
+			justify-content: center;
+			padding: 10px 0;
+
+			button {
+				margin: 0 10px;
+				width: 150px;
+				border: 1px solid white;
+			}
+		}
+	}
+
+	&__demo-container {
+		margin: 0 24px;
+		width: 100%;
+		min-height: calc(100% - #{$NavigatorBarHeight} - 4px);
+		position: relative;
+		top: $NavigatorBarHeight;
+
+		.cli::after {
+			min-height: calc(100% - $NavigatorBarHeight - 4px);
+		}
+	}
+	.content-screen_mode_options {
+		position: absolute;
+		max-height: calc(100% - $NavigatorBarHeight - 100px);
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "es5",
+		"lib": ["es2020", "dom"],
+		"outDir": "../../../dist/",
+		"moduleResolution": "node",
+		"baseUrl": "../../",
+		"resolveJsonModule": true
+	},
+	"include": ["./CLIApp.ts"],
+	"exclude": [
+		"../../src/lib/**/*.ts",
+		"../../**/*.test.ts",
+		"../../src/demo/web/**",
+		"../../src/demo/web/node_modules/**",
+		"../../src/demo/web/**/*.d.ts",
+		"../../dist/**"
+	]
+}

@@ -1,0 +1,30 @@
+.content-screen {
+	width: 100%;
+	overflow: auto;
+
+	&__item {
+		padding: 0 0 0.5em 1em;
+
+		&_error {
+			color: #ff435c;
+		}
+	}
+
+	//  TODO CHECK THOSE SCROLL STYLES
+	/* The track (outer background) */
+	&::-webkit-scrollbar-track {
+		background: #202020;
+		border-radius: 12px; /* makes the outer part rounded */
+	}
+	&::-webkit-scrollbar-thumb {
+		background: #303030;
+		border: 2px solid transparent;
+		background-clip: content-box;
+		border-radius: 12px; /* makes the outer part rounded */
+	}
+
+	&::-webkit-scrollbar {
+		width: 18px;
+		height: 18px;
+	}
+}

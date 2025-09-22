@@ -1,0 +1,24 @@
+{
+	"ERRORS": {
+		"ActionNotFound": "Action for '{{command}}' is not found.",
+		"AmbiguousAlias": "Alias {{what}} maps to multiple commands: {{commands}}. The first of them will be used.",
+		"ContextNotFound": "Context '{{contextName}}' not found.",
+		"EmptyCli": "Empty command line input.",
+		"InvalidFormat": "Invalid format: The value '{{value}}' isn't valid for command '{{command}}'.",
+		"InvalidLanguageCode": "Invalid language code: '{{languageCode}}'.",
+		"NodeNotFound": "Command node not found for command '{{command}}' in context '{{context}}'.",
+		"MissingParameter": "Missing required parameter.",
+		"UnrecognizedCommand": "Unrecognized or ambiguous command '{{command}}'.",
+		"UnrecognizedParameter": "Unrecognized or ambiguous parameter.",
+		"UnresolvedRequirement": "Unresolved requirement: {{what}} is required.",
+		"UnsupportedLanguage": "Language {{languageCode}} is not available.",
+		"UnsupportedManagerType": "Unsupported context manager type: {{managerType}}"
+	},
+	"HINTS": {
+		"AvailableCommands": "Available commands for context \"{{contextName}}\" are: {{commands}}.",
+		"AvailableParameters": "Available parameters for command {{command}} are: {{parameters}}.",
+		"AvailableLanguages": "Available languages: {{availableLanguages}}.",
+		"ProcessedCommand": "Command is successfully processed.",
+		"AutoCompleteCommand": "Autocomplete request is successfully processed."
+	}
+}

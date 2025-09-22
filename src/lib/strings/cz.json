@@ -1,0 +1,23 @@
+{
+	"ERRORS": {
+		"ActionNotFound": "Působení pro '{{command}}' nebyla nalezena.",
+		"AmbiguousAlias": "Alias {{what}} maps to multiple commands: {{commands}}. The first of them will be used.",
+		"ContextNotFound": "Kontext '{{contextName}}' nebyl nalezen.",
+		"EmptyCli": "Prázdný vstup příkazového řádku.",
+		"InvalidFormat": "Neplatný formát: Hodnota '{{value}}' není platná pro příkaz '{{command}}'.",
+		"InvalidLanguageCode": "Neplatný kód jazyka: '{{languageCode}}'.",
+		"NodeNotFound": "Uzel pro příkaz '{{command}}' v kontextu '{{context}}' nebyl nalezen.",
+		"MissingParameter": "Chybí povinný parametr.",
+		"UnrecognizedCommand": "Nerozpoznaný nebo nejednoznačný příkaz '{{command}}'.",
+		"UnrecognizedParameter": "Nerozpoznaný nebo nejednoznačný parametr.",
+		"UnresolvedRequirement": "Nevyřešený požadavek: Je vyžadován {{what}}.",
+		"UnsupportedLanguage": "Jazyk {{languageCode}} není k dispozici.",
+		"UnsupportedManagerType": "CZ: Unsupported context manager type: {{managerType}}"
+	},
+	"HINTS": {
+		"AvailableCommands": "Dostupné příkazy pro {{contextName}} jsou: {{commands}}.",
+		"AvailableParameters": "Dostupné parametry pro příkaz {{command}} jsou: {{parameters}}.",
+		"AvailableLanguages": "Dostupné jazyky: {{availableLanguages}}.",
+		"ProcessedCommand": "Příkaz byl úspěšně zpracovány."
+	}
+}

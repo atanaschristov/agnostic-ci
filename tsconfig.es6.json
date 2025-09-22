@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"module": "es6",
+		"target": "es5",
+		"lib": ["es2020", "dom"],
+		"declaration": true,
+		"outDir": "dist/lib/es6",
+		"moduleResolution": "node",
+		"types": ["jest", "node"],
+		"resolveJsonModule": true
+	},
+	"include": ["src/lib/**/*.ts", "src/lib/**/*.json"],
+	"exclude": ["src/**/*.test.ts"]
+}

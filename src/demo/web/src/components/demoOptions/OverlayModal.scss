@@ -1,0 +1,100 @@
+.overlay-modal {
+	z-index: 1000;
+	position: fixed;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+
+	&__content {
+		width: 50vw;
+		min-height: 30vh;
+		max-width: 720px;
+		max-height: 90vh;
+		background: rgba(11, 13, 15, 0.95);
+		border-radius: 32px;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+		gap: 16px;
+		padding: 20px;
+		position: relative;
+		display: grid;
+		grid-template-rows: auto 1fr auto;
+		outline: 1px solid rgba(255, 255, 255, 0.2);
+
+		h2 {
+			margin: 50px 0 30px 0;
+		}
+
+		.help-space {
+			font-size: 0.8em;
+			margin: 10px 0;
+			min-height: 2vh;
+			max-height: 10vh;
+			color: #a1a1a1;
+		}
+
+		&__input {
+			border: 1px solid rgba(255, 255, 255, 0.6);
+			background: color-mix(in oklab, black 96%, white 4%);
+			border-radius: 8px;
+			padding: 12px 14px;
+			outline: none;
+
+			&:focus {
+				border-color: white;
+			}
+
+			&_invalid {
+				border-color: rgba(250, 0, 0, 0.4);
+
+				&:focus {
+					border-color: rgba(250, 0, 0, 0.6);
+				}
+			}
+		}
+
+		&__buttons {
+			display: flex;
+			justify-content: flex-end;
+
+			&__confirm {
+				margin: 15px 0 25px 0;
+				width: 150px;
+				border: 1px solid white;
+				padding: 0.3em 0.6em !important;
+
+				&_disable {
+					color: rgba(255, 255, 255, 0.1);
+					border-color: rgba(255, 255, 255, 0.1);
+
+					&:hover {
+						color: rgba(255, 255, 255, 0.1);
+						border-color: rgba(255, 255, 255, 0.1);
+					}
+				}
+			}
+		}
+
+		&__close {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			position: absolute;
+			top: 24px;
+			right: 24px;
+			width: 36px;
+			height: 36px;
+			border-radius: 999px;
+			border: 1px solid white;
+			cursor: pointer;
+
+			&:hover {
+				border: 1px solid white;
+			}
+		}
+	}
+}

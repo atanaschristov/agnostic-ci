@@ -1,0 +1,20 @@
+$BackgroundColor: #121212;
+
+.tree-options__input {
+	position: fixed;
+	background-color: $BackgroundColor;
+	border-top: 2px solid #222;
+
+	&__list {
+		display: flex;
+		flex-wrap: wrap;
+		li {
+			list-style-position: inside;
+			padding: 5px 10px;
+		}
+	}
+
+	button {
+		background-color: $BackgroundColor;
+	}
+}

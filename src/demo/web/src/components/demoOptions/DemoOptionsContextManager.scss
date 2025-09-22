@@ -1,0 +1,14 @@
+$InputOptionsWidth: 350px;
+$InputOptionsHeigh: 200px;
+
+.tree-options {
+	&__input {
+		padding-left: 24px;
+		padding-top: 24px;
+		position: fixed;
+		left: 0;
+		width: 100%;
+		height: $InputOptionsHeigh;
+		bottom: 0;
+	}
+}
