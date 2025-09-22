@@ -6,6 +6,7 @@ import {
 	ICommandActionParameter,
 	ICommandNode,
 	IContextContainer,
+	ILocaleStrings,
 	IResponse,
 } from './types';
 
@@ -39,7 +40,7 @@ export class OptionsContextManager extends ContextManagerBase {
 
 	initialize(
 		contextContainer: IContextContainer,
-		locales?: Record<string, any>,
+		locales?: ILocaleStrings,
 		language?: string,
 	): void {
 		this.addImplicitGlobalCommands(contextContainer, {}); // TreeContextManager specific implicit commands
@@ -140,6 +141,7 @@ export class OptionsContextManager extends ContextManagerBase {
 
 		if (commandNode.action) pendingActions?.push({ ...commandNode.action });
 
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { aliases, action, type, ...commandMeta } = commandNode || {};
 		if (commandNode.type === 'context') {
 			processedDepth?.push(commandNode.name);
@@ -197,6 +199,7 @@ export class OptionsContextManager extends ContextManagerBase {
 		}
 
 		if (type === 'set') {
+			// TODO
 		} else {
 			const value = argument || defaultValue;
 			this._processedInput = {

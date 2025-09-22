@@ -1,6 +1,6 @@
 {
-	"name": "game-cli-builder",
-	"description": "A tool for creating command line interfaces for games",
+	"name": "agnostic-ci",
+	"description": "Agnostic-CI(ACI) is a library for building and processing command interfaces",
 	"version": "0.0.1",
 	"repository": "TODO",
 	"author": "dev <xfoocom@gmail.com>",
@@ -33,16 +33,24 @@
 		"test:coverage": "npm run clean && npx jest --config jest.config.js --coverage"
 	},
 	"devDependencies": {
+		"@eslint/css": "^0.11.0",
+		"@eslint/js": "^9.36.0",
+		"@eslint/json": "^0.13.2",
 		"@types/jest": "^29.5.14",
 		"@types/node": "^24.1.0",
 		"@types/object-hash": "^3.0.6",
 		"bem-cn": "^3.0.1",
 		"clsx": "^2.1.1",
+		"eslint": "^9.36.0",
+		"eslint-plugin-react": "^7.37.5",
+		"globals": "^16.4.0",
 		"jest": "^29.7.0",
 		"jest-transform-stub": "^2.0.0",
+		"jiti": "^2.6.0",
 		"prettier": "^3.5.3",
 		"ts-jest": "^29.3.2",
-		"typescript": "^5.8.3"
+		"typescript": "^5.9.0",
+		"typescript-eslint": "^8.44.0"
 	},
 	"dependencies": {
 		"i18next": "^25.3.6",

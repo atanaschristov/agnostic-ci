@@ -106,3 +106,7 @@ export interface IResponse {
 	autoCompleteOutput?: IAutocompleteOutput;
 	info?: IResponseInfo;
 }
+
+export interface ILocaleStrings {
+	[key: string]: string | ILocaleStrings | undefined;
+}

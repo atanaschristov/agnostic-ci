@@ -19,14 +19,10 @@ export const RenderDocument = async (props: IRenderDocumentParameter) => {
 	}
 
 	if (filtered.length == 0) {
-		console.warn('No documents found.');
 		return <div>Documentation not found.</div>;
 	}
 
-	if (filtered.length > 0)
-		console.warn('More than one doc found, showing the first one.', filtered);
-
-	const content = await filtered[0]();
+	const content = await filtered[0](); // Get the first filtered element. Ignore the rest
 
 	return (
 		<ReactMarkdown

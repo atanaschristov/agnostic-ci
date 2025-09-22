@@ -27,3 +27,9 @@ jobs:
 
          - name: Install dependencies
            run: npm ci
+
+         - name: Run eslint
+           run: npx eslint
+
+         - name: Run tests
+           run: npm test:coverage -- --ci --reporters=default

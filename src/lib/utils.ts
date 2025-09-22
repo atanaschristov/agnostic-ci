@@ -2,9 +2,9 @@
 export function longestCommonPrefix(arr: string[]) {
 	arr.sort();
 
-	let first = arr[0];
-	let last = arr[arr.length - 1];
-	let minLength = Math.min(first.length, last.length);
+	const first = arr[0];
+	const last = arr[arr.length - 1];
+	const minLength = Math.min(first.length, last.length);
 
 	let i = 0;
 	while (i < minLength && first[i] === last[i]) {

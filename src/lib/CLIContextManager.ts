@@ -19,6 +19,7 @@ import {
 	ICommandActionParameter,
 	ICommandNode,
 	IContextContainer,
+	ILocaleStrings,
 	IProcessedParameter,
 	IResponse,
 	NormalizedCommand,
@@ -64,7 +65,7 @@ export class CLIContextManager extends ContextManagerBase {
 
 	initialize(
 		contextContainer: IContextContainer,
-		locales?: Record<string, any>,
+		locales?: ILocaleStrings,
 		language?: string,
 	): void {
 		// TODO needs optimization how the commands and contexts are merged
@@ -88,6 +89,7 @@ export class CLIContextManager extends ContextManagerBase {
 		} catch (response) {
 			this._response = response as IResponse;
 			if (!this._response.success) {
+				// eslint-disable-next-line no-console
 				console.error(`\n${response}`);
 			}
 		}
@@ -217,6 +219,7 @@ export class CLIContextManager extends ContextManagerBase {
 		if (!processedInputString) processedInputString = '';
 		processedInputString = `${processedInputString.length ? processedInputString + COMMAND_SPLITTING_SYMBOL : ''}${commandName}`;
 
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { aliases, action, type, ...commandMetaInfo } = commandNode;
 
 		if (action) pendingActions?.push({ ...action });
@@ -275,6 +278,7 @@ export class CLIContextManager extends ContextManagerBase {
 
 			const commandNode = commandNodes[0];
 			if (commandNodes.length > 1) {
+				// eslint-disable-next-line no-console
 				console.warn(
 					this._translate('ERRORS.AmbiguousAlias', {
 						what: nextInputElement,
@@ -397,7 +401,7 @@ export class CLIContextManager extends ContextManagerBase {
 		const { defaultValue, required, valueFormatLimitation, type, possibleValues } =
 			parameterRequirement || {};
 
-		let commandParameter = inputArr.join(COMMAND_SPLITTING_SYMBOL);
+		const commandParameter = inputArr.join(COMMAND_SPLITTING_SYMBOL);
 
 		// use the default value if there is nothing and default value exists.
 		// The default value is supposed to be provided from the schema,
@@ -597,6 +601,7 @@ export class CLIContextManager extends ContextManagerBase {
 	}
 
 	private sendExecuteSuccessResponse() {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { processedDepth, pendingActions, error, command, processedInputString, ...rest } =
 			this._processedInput || {};
 

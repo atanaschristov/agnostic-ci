@@ -11,6 +11,7 @@ import {
 	ICommands,
 	IContextContainer,
 	IContextDefinition,
+	ILocaleStrings,
 	IProcessedInput,
 	IProcessedParameter,
 	IResponse,
@@ -25,7 +26,7 @@ import { validateLanguageCode } from './utils';
 import { COMMAND_NAMES } from './internalCommands/constants';
 
 export interface IContextConfiguration {
-	localeResources?: Record<string, any>;
+	localeResources?: ILocaleStrings;
 	language?: string;
 }
 
@@ -46,9 +47,8 @@ export class ContextManagerBase {
 	private __currentRootContextId?: string;
 
 	protected _configuration?: IContextConfiguration;
-	protected _implicitCommandActionMappings?: Map<string, (attributesObj?: any) => void>;
 	protected _processedInput?: IProcessedInput;
-	protected _translate?: any;
+	protected _translate: i18next.TFunction<['translation', ...string[]], undefined>;
 	protected _response?: IResponse = undefined;
 
 	public get response(): IResponse | undefined {
@@ -75,7 +75,7 @@ export class ContextManagerBase {
 		return this.__currentContext;
 	}
 
-	public get translate(): any {
+	public get translate() {
 		return this._translate;
 	}
 
@@ -100,7 +100,7 @@ export class ContextManagerBase {
 
 	initialize(
 		contextContainer: IContextContainer,
-		externalLocales?: Record<string, any>,
+		externalLocales?: ILocaleStrings,
 		language?: string,
 	): void {
 		this.mergeLocales(externalLocales, { allowDefaultNS: false, safe: false });
@@ -110,7 +110,7 @@ export class ContextManagerBase {
 				lng: this._configuration?.language,
 				defaultNS: I18N_DEFAULT_NS,
 				fallbackLng: I18N_FALLBACK_LANGUAGE,
-				resources: this._configuration?.localeResources || {},
+				resources: (this._configuration?.localeResources as i18next.Resource) || {},
 			})
 			.then(() => {
 				this._translate = i18next.t.bind(i18next);
@@ -128,7 +128,7 @@ export class ContextManagerBase {
 		}
 	}
 
-	addLocales(newLocales: Record<string, any>) {
+	addLocales(newLocales: ILocaleStrings) {
 		this.mergeLocales(newLocales, { addResourceBundle: true, safe: true });
 	}
 
@@ -186,7 +186,7 @@ export class ContextManagerBase {
 		if (!contextContainer) contextContainer = {};
 		// Merge the global implicit commands first
 		// allowing overwriting the them with the custom commands
-		for (let [contextId] of Object.entries(contextContainer)) {
+		for (const [contextId] of Object.entries(contextContainer)) {
 			contextContainer[contextId].commands = {
 				...globalCommands,
 				...contextContainer[contextId].commands,
@@ -299,47 +299,53 @@ export class ContextManagerBase {
 	}
 
 	private mergeLocales(
-		newLocales?: Record<string, any>,
+		newLocales?: ILocaleStrings,
 		{
 			allowDefaultNS,
 			safe,
 			addResourceBundle,
 		}: { allowDefaultNS?: boolean; safe?: boolean; addResourceBundle?: boolean } = {},
 	) {
-		const resources: Record<string, any> = this?._configuration?.localeResources || {};
+		const resources: ILocaleStrings = this?._configuration?.localeResources || {};
 
 		if (!newLocales) return;
 
 		for (const [language, namespaces] of Object.entries(newLocales)) {
 			if (!validateLanguageCode(language)) continue;
 
-			for (const [namespace, translations] of Object.entries(namespaces)) {
-				if (!resources?.[language]) resources[language] = {};
+			if (namespaces)
+				for (const [namespace, translations] of Object.entries(namespaces)) {
+					if (!resources?.[language]) resources[language] = {};
 
-				if (safe && resources[language]?.[namespace]) continue;
+					if (safe && (resources[language] as ILocaleStrings)?.[namespace]) continue;
 
-				// Make sure we don't overwrite the internal default name space.
-				// If there is an attempt to do it, we use the default external namespace.
-				const checkedNamespace =
-					!allowDefaultNS && namespace === I18N_DEFAULT_NS ? I18N_EXTERNAL_NS : namespace;
+					// Make sure we don't overwrite the internal default name space.
+					// If there is an attempt to do it, we use the default external namespace.
+					const checkedNamespace =
+						!allowDefaultNS && namespace === I18N_DEFAULT_NS ? I18N_EXTERNAL_NS : namespace;
 
-				if (!resources[language]?.[checkedNamespace])
-					resources[language][checkedNamespace] = { ...(translations as Object) };
-				else {
-					resources[language][checkedNamespace] = {
-						...resources[language][checkedNamespace],
-						...(translations as Object),
-					};
+					if (!(resources[language] as ILocaleStrings)?.[checkedNamespace])
+						(resources[language] as ILocaleStrings)[checkedNamespace] = {
+							...(translations as ILocaleStrings),
+						};
+					else {
+						(resources[language] as ILocaleStrings)[checkedNamespace] = {
+							...((resources[language] as ILocaleStrings)[
+								checkedNamespace
+							] as ILocaleStrings),
+							...(translations as ILocaleStrings),
+						};
+					}
+					if (addResourceBundle)
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						(i18next as any).addResourceBundle(
+							language,
+							checkedNamespace,
+							translations,
+							true,
+							true,
+						);
 				}
-				addResourceBundle &&
-					(i18next as any).addResourceBundle(
-						language,
-						checkedNamespace,
-						translations,
-						true,
-						true,
-					);
-			}
 		}
 	}
 
@@ -434,6 +440,7 @@ export class ContextManagerBase {
 		i18next.changeLanguage(languageCode).then(() => {
 			this._translate = i18next.t.bind(i18next);
 		});
+		// eslint-disable-next-line no-console
 		console.info(`Language changed to ${this._configuration.language}`);
 	}
 

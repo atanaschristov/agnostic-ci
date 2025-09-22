@@ -68,7 +68,6 @@ function App() {
 		const { success, actions, info } = response;
 		let { message } = response;
 
-		console.log('processResponse', info);
 		message = info?.command?.name ? `${message} (${info?.command?.name})` : message;
 
 		if (!actions?.length) setScreenItem({ success, content: message });

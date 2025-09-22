@@ -15,7 +15,7 @@ import {
 	PROMPT_SUFFIX,
 } from '../lib/constants';
 import { CONTEXT_NAMES } from '../__mocks__/contexts';
-import { ICommands, IContextContainer, IContextDefinition } from '../lib/types';
+import { ICommands, IContextContainer, IContextDefinition, ILocaleStrings } from '../lib/types';
 import { COMMAND_NAMES } from '../lib/internalCommands/constants';
 
 describe('CLIContextManager', () => {
@@ -24,7 +24,7 @@ describe('CLIContextManager', () => {
 	const { SETTINGS_CONTEXT } = CONTEXT_NAMES.SETTINGS;
 	let contextManager: CLIContextManager | undefined;
 	let MockedContexts: IContextContainer | undefined;
-	let MockedCommandStrings: any;
+	let MockedCommandStrings: ILocaleStrings;
 
 	beforeAll(async () => {
 		const Mocks = await import('../__mocks__/contexts');
@@ -94,10 +94,10 @@ describe('CLIContextManager', () => {
 
 		it('can be accessed from every context. They are global', async () => {
 			const implicitCommandNames: string[] = [];
-			for (let [key] of Object.entries(INTERNAL.commands.common)) {
+			for (const [key] of Object.entries(INTERNAL.commands.common)) {
 				implicitCommandNames.push(key);
 			}
-			for (let [key] of Object.entries(INTERNAL.commands.cli)) {
+			for (const [key] of Object.entries(INTERNAL.commands.cli)) {
 				if (!implicitCommandNames.includes(key)) implicitCommandNames.push(key);
 			}
 
@@ -105,7 +105,7 @@ describe('CLIContextManager', () => {
 
 			expect(contextContainer).toBeDefined();
 			if (contextContainer) {
-				for (let [_, value] of Object.entries(contextContainer)) {
+				for (const [, value] of Object.entries(contextContainer)) {
 					implicitCommandNames.map((implicitCommandName) =>
 						expect(Object.keys(value?.commands).includes(implicitCommandName)).toBeTruthy(),
 					);
@@ -117,14 +117,14 @@ describe('CLIContextManager', () => {
 			const commandHashes = contextManager?.['__commandHashes'] as Set<string>;
 
 			const commandIterator = (commands: ICommands) => {
-				for (const [_, command] of Object.entries(commands)) {
+				for (const [, command] of Object.entries(commands)) {
 					expect(commandHashes.has(sha1(command))).toBeTruthy();
 				}
 			};
 
 			commandIterator(INTERNAL.commands.cli);
 
-			for (const [_, context] of Object.entries(INTERNAL.contexts.cli)) {
+			for (const [, context] of Object.entries(INTERNAL.contexts.cli)) {
 				commandIterator(context.commands);
 			}
 		});
@@ -140,7 +140,8 @@ describe('CLIContextManager', () => {
 			const customHelpCommand = MockedContexts?.[CHARACTER_CONTEXT].commands[COMMAND];
 			const implicitHelpCommand = MockedContexts?.[ROOT_CONTEXT].commands[COMMAND];
 			const mockedImplicitlyExecuteHelpAction = jest.spyOn(
-				(CLIContextManager as any).prototype,
+				CLIContextManager.prototype,
+				// @ts-expect-error Using the private property for testing purposes
 				'implicitlyExecuteHelpAction',
 			);
 
@@ -306,7 +307,7 @@ describe('CLIContextManager', () => {
 			it('enters the config context', () => {
 				const COMMAND = 'config';
 				contextManager?.send(COMMAND);
-				let { prompt, response } = contextManager || {};
+				const { prompt, response } = contextManager || {};
 				const { success, message } = response || {};
 				expect(success).toBeTruthy();
 				expect(message).toBe(INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].HINTS.ProcessedCommand);
@@ -320,7 +321,7 @@ describe('CLIContextManager', () => {
 				const CONTEXT = 'config';
 
 				contextManager?.send(COMMAND);
-				let { prompt, response } = contextManager || {};
+				const { prompt, response } = contextManager || {};
 				const { success, message } = response || {};
 				expect(success).toBeTruthy();
 				expect(message).toBe(INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].HINTS.ProcessedCommand);
@@ -334,7 +335,7 @@ describe('CLIContextManager', () => {
 
 				contextManager?.send(COMMAND);
 				contextManager?.send(COMMAND);
-				let { response } = contextManager || {};
+				const { response } = contextManager || {};
 				const { success, message } = response || {};
 				const partialErrorMessage =
 					INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].ERRORS.UnrecognizedCommand.split("'")[0];
@@ -367,7 +368,7 @@ describe('CLIContextManager', () => {
 				const NEW_SUFFIX = '$$';
 				const COMMAND = [COMMAND_NAMES.CONFIG, COMMAND_NAMES.PROMPT_SUFFIX, NEW_SUFFIX];
 				contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
-				let prompt = contextManager?.prompt;
+				const prompt = contextManager?.prompt;
 				expect(prompt).toContain(`${NEW_SUFFIX} `);
 			});
 
@@ -375,7 +376,7 @@ describe('CLIContextManager', () => {
 				const NEW_PREFIX = '{';
 				const COMMAND = [COMMAND_NAMES.CONFIG, COMMAND_NAMES.PROMPT_PREFIX, NEW_PREFIX];
 				contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
-				let prompt = contextManager?.prompt;
+				const prompt = contextManager?.prompt;
 				expect(prompt).toContain(NEW_PREFIX);
 			});
 
@@ -389,7 +390,7 @@ describe('CLIContextManager', () => {
 					`'${ADDITIONAL_DUMMY_PARAMETER}'`,
 				];
 				contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
-				let prompt = contextManager?.prompt;
+				const prompt = contextManager?.prompt;
 				expect(prompt).toContain(NEW_PROMPT_SPLITTING_SYMBOL);
 			});
 		});
@@ -476,7 +477,7 @@ describe('CLIContextManager', () => {
 			expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(EXPECTED_PROMPT);
 			expect(info?.contextDepth).toHaveLength(2); // including the root
 			expect(contextManager?.currentContext?.commands).toBeDefined();
-			contextManager?.currentContext?.commands &&
+			if (contextManager?.currentContext?.commands)
 				Object.keys(contextManager?.currentContext?.commands).forEach((cmd) => {
 					expect(mockedCommands[cmd]).toBeDefined();
 				});
@@ -673,21 +674,21 @@ describe('CLIContextManager', () => {
 	});
 
 	describe('validates the translation', () => {
-		let customLocales;
+		let customLocales: ILocaleStrings;
 		const INITIAL_LANGUAGE = 'de';
 		const REQUIRED_LANGUAGE = 'cz';
 		beforeEach(async () => {
 			customLocales = {
 				[INITIAL_LANGUAGE]: {
 					[I18N_EXTERNAL_NS]: { test: 'German Translation' },
-					...(MockedCommandStrings?.[INITIAL_LANGUAGE] || {}),
+					...(MockedCommandStrings?.[INITIAL_LANGUAGE] as ILocaleStrings),
 				},
 				[REQUIRED_LANGUAGE]: {
 					[I18N_EXTERNAL_NS]: { test: 'Czech Translation' },
-					...(MockedCommandStrings?.[REQUIRED_LANGUAGE] || {}),
+					...(MockedCommandStrings?.[REQUIRED_LANGUAGE] as ILocaleStrings),
 				},
 				[I18N_FALLBACK_LANGUAGE]: {
-					...(MockedCommandStrings?.[I18N_FALLBACK_LANGUAGE] || {}),
+					...(MockedCommandStrings?.[I18N_FALLBACK_LANGUAGE] as ILocaleStrings),
 				},
 			};
 
@@ -702,14 +703,26 @@ describe('CLIContextManager', () => {
 
 		it('should translate the output strings, which are meant to be translated if the language is set during initialization', () => {
 			const translated = contextManager?.['_translate']('test', { ns: I18N_EXTERNAL_NS });
-			expect(translated).toBe(customLocales[INITIAL_LANGUAGE][I18N_EXTERNAL_NS].test);
+			expect(translated).toBe(
+				(
+					(customLocales[INITIAL_LANGUAGE] as ILocaleStrings)[
+						I18N_EXTERNAL_NS
+					] as ILocaleStrings
+				).test,
+			);
 		});
 
 		it('should translate the output strings, which are meant to be translated if the language is set explicitly', () => {
 			const COMMAND = ['config', 'lang', REQUIRED_LANGUAGE];
 			contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 			const translated = contextManager?.['_translate']('test', { ns: I18N_EXTERNAL_NS });
-			expect(translated).toBe(customLocales[REQUIRED_LANGUAGE][I18N_EXTERNAL_NS].test);
+			expect(translated).toBe(
+				(
+					(customLocales[REQUIRED_LANGUAGE] as ILocaleStrings)[
+						I18N_EXTERNAL_NS
+					] as ILocaleStrings
+				).test,
+			);
 		});
 
 		it('should translate the output message based on the explicitly set language', () => {
@@ -928,7 +941,7 @@ describe('CLIContextManager', () => {
 
 			expect(EXPECTED_ACTION).toBeDefined();
 			expect(response?.success).toBeTruthy();
-			let action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
+			const action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
 			expect(action?.parameter?.value).toBe(EXPECTED_ACTION?.parameter?.defaultValue);
 		});
 
@@ -947,10 +960,10 @@ describe('CLIContextManager', () => {
 			// FULL_COMMAND = `${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} ${COMMAND} ${PARTIAL_PARAMETER}`;
 			const EXPECTED_ACTION = MockedContexts?.[HAIR_CONTEXT].commands?.[COMMAND].action;
 			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
-			let response = contextManager?.response;
+			const response = contextManager?.response;
 
 			expect(response?.success).toBeTruthy();
-			let action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
+			const action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
 			expect(action?.parameter?.value).toBe(FULL_PARAMETER);
 		});
 	});
@@ -997,7 +1010,7 @@ describe('CLIContextManager', () => {
 			const mockedCommands = Object.keys(MockedContexts[ROOT_CONTEXT].commands);
 
 			contextManager?.autocomplete('nonExistingCommand');
-			let response = contextManager?.response;
+			const response = contextManager?.response;
 
 			expect(response?.success).toBeFalsy();
 			expect(response?.message).toContain('Unrecognized or ambiguous command');

@@ -12,8 +12,8 @@ export class ContextResponse extends Error implements IResponse {
 		this.message = message;
 		this.code = code;
 		Object.assign(this, rest);
-		if ((Error as any).captureStackTrace) {
-			(Error as any).captureStackTrace(this, ContextResponse);
+		if (Error.captureStackTrace) {
+			Error.captureStackTrace(this, ContextResponse);
 		}
 	}
 }
