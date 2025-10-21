@@ -1,7 +1,7 @@
 import { MESSAGE_CODES } from './constants';
-import { ContextManagerBase, IContextConfiguration } from './ContextManagerBase';
+import { ContextManagerBase } from './ContextManagerBase';
 import { ContextResponse } from './ContextResponse';
-import {
+import type {
 	ICommandAction,
 	ICommandActionParameter,
 	ICommandNode,
@@ -9,6 +9,7 @@ import {
 	ILocaleStrings,
 	IResponse,
 } from './types';
+import type { IContextConfiguration } from './ContextManagerBase';
 
 interface ITreeContextConfiguration extends IContextConfiguration {
 	optionsFormat?: string;

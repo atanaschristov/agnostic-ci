@@ -1,10 +1,18 @@
 import * as i18next from 'i18next';
-import { sha1 } from 'object-hash';
 import INTERNAL_LOCALES from './strings';
 import INTERNAL_COMMANDS from './internalCommands';
 
+import { COMMAND_NAMES } from './internalCommands/constants';
 import { ContextResponse } from './ContextResponse';
 import {
+	I18N_DEFAULT_NS,
+	I18N_EXTERNAL_NS,
+	I18N_FALLBACK_LANGUAGE,
+	MESSAGE_CODES,
+} from './constants';
+import { sha1 } from 'object-hash';
+import { validateLanguageCode } from './utils';
+import type {
 	IAdditionalInfo,
 	ICommandActionParameter,
 	ICommandNode,
@@ -16,14 +24,6 @@ import {
 	IProcessedParameter,
 	IResponse,
 } from './types';
-import {
-	I18N_DEFAULT_NS,
-	I18N_EXTERNAL_NS,
-	I18N_FALLBACK_LANGUAGE,
-	MESSAGE_CODES,
-} from './constants';
-import { validateLanguageCode } from './utils';
-import { COMMAND_NAMES } from './internalCommands/constants';
 
 export interface IContextConfiguration {
 	localeResources?: ILocaleStrings;
@@ -38,12 +38,13 @@ export type UpdateContextMode = 'add' | 'sub';
 
 export class ContextManagerBase {
 	private readonly __commandHistory = new Map<string, string[]>();
+	private readonly __commandHashes = new Set<string>();
+
 	// private static __instance__?: ContextManagerBase;
 	private __contextContainer?: IContextContainer;
 	private __currentContext?: IContextDefinition;
 	private __implicitCommands: ICommands = {};
 	private __contextDepth: string[] = [];
-	private __commandHashes = new Set<string>();
 	private __currentRootContextId?: string;
 
 	protected _configuration?: IContextConfiguration;

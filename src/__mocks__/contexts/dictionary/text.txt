@@ -1,0 +1,25 @@
+dictionary (list(lists languages), laguages, lessons, exercise)
+
+dictionary > languages (add, remove, lessons, words)
+
+dictionary > languages > words
+   (add,
+   remove,
+   list,
+   setExample,
+   setLesson,
+   setDate
+   gramaticalInfo
+   lessons
+
+
+dictionary > language > words > gramaticalInfo (
+   setType(verb adjective, noun)
+   setGender,
+   set)
+)
+
+dictionary > exercise > cz >
+
+
+

@@ -7,15 +7,15 @@ import {
 	PROMPT_SPLITTING_SYMBOL,
 	PROMPT_FORMAT,
 } from './constants';
-import {
-	ContextManagerBase,
+import { ContextManagerBase } from './ContextManagerBase';
+import { ContextResponse } from './ContextResponse';
+import { longestCommonPrefix } from './utils';
+import type {
 	ICommandsAndAliases,
 	IContextConfiguration,
 	UpdateContextMode,
 } from './ContextManagerBase';
-import { ContextResponse } from './ContextResponse';
-import { longestCommonPrefix } from './utils';
-import {
+import type {
 	ICommandActionParameter,
 	ICommandNode,
 	IContextContainer,
@@ -24,6 +24,7 @@ import {
 	IResponse,
 	NormalizedCommand,
 } from './types';
+
 import INTERNAL from './internalCommands';
 
 export type TPromptFormat = 'basic' | 'normal' | 'full';

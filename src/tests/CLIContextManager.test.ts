@@ -16,9 +16,23 @@ import {
 } from '../lib/constants';
 import { CONTEXT_NAMES } from '../__mocks__/contexts';
 import { ICommands, IContextContainer, IContextDefinition, ILocaleStrings } from '../lib/types';
-import { COMMAND_NAMES } from '../lib/internalCommands/constants';
+import { COMMAND_NAMES as INTERNAL_COMMAND_NAMES } from '../lib/internalCommands/constants';
+import { COMMAND_NAMES as EXTERNAL_COMMAND_NAMES } from '../__mocks__/contexts';
 
 describe('CLIContextManager', () => {
+	const {
+		ROOT: { COLOR, FIRST_NAME, LIST, LENGTH, AGE, UI_SETTINGS },
+	} = EXTERNAL_COMMAND_NAMES;
+	const {
+		HELP,
+		BACK,
+		CONFIG,
+		PROMPT_FORMAT: PROMPT_FORMAT_COMMAND,
+		PROMPT_PREFIX: PROMPT_PREFIX_COMMAND,
+		PROMPT_SUFFIX: PROMPT_SUFFIX_COMMAND,
+		PROMPT_SPLITTING_SYMBOL: PROMPT_SPLITTING_SYMBOL_COMMAND,
+	} = INTERNAL_COMMAND_NAMES;
+
 	const { ROOT_CONTEXT, CHARACTER_CONTEXT, BODY_CONTEXT, HEAD_CONTEXT, HAIR_CONTEXT } =
 		CONTEXT_NAMES.ROOT;
 	const { SETTINGS_CONTEXT } = CONTEXT_NAMES.SETTINGS;
@@ -136,7 +150,7 @@ describe('CLIContextManager', () => {
 			// When the command is executed the response should contain the custom action
 			// and not the implicit one.
 			// The implicit behavior should be ignored
-			const COMMAND = 'help';
+			const COMMAND = HELP;
 			const customHelpCommand = MockedContexts?.[CHARACTER_CONTEXT].commands[COMMAND];
 			const implicitHelpCommand = MockedContexts?.[ROOT_CONTEXT].commands[COMMAND];
 			const mockedImplicitlyExecuteHelpAction = jest.spyOn(
@@ -147,7 +161,7 @@ describe('CLIContextManager', () => {
 
 			//1. executes the command in a context where it is not overridden, checks the actions and makes sure
 			// the so the implicit method is called
-			contextManager?.send(`${COMMAND}`);
+			contextManager?.send(COMMAND);
 			let { actions, info } = contextManager?.response || {};
 			let action = actions?.find((action) => action.name === implicitHelpCommand?.action?.name);
 			expect(info?.command?.name).toBe(COMMAND);
@@ -157,13 +171,13 @@ describe('CLIContextManager', () => {
 
 			//2. executes the command in a context where it is not overridden again
 			// and verify the implicit method is called one more time
-			contextManager?.send(`${COMMAND}`);
+			contextManager?.send(COMMAND);
 			expect(mockedImplicitlyExecuteHelpAction).toHaveBeenCalledTimes(2);
 
 			//3. execute the command in a context where it is customized
 			// and verify the implicit method has not been called one more time, but the result
 			// contains the custom action
-			contextManager?.send(`${CHARACTER_CONTEXT} ${COMMAND}`);
+			contextManager?.send([CHARACTER_CONTEXT, COMMAND].join(COMMAND_SPLITTING_SYMBOL));
 			actions = contextManager?.response?.actions;
 			info = contextManager?.response?.info;
 			action = actions?.find((action) => action.name === customHelpCommand?.action?.name);
@@ -174,56 +188,60 @@ describe('CLIContextManager', () => {
 		});
 
 		it("doesn't have the internal behavior if the command is overwritten", async () => {
-			contextManager?.send('help');
+			contextManager?.send(HELP);
 			const { response } = contextManager || {};
 
 			expect(response?.info);
+			// TODO
 		});
 
-		describe('back', () => {
+		describe(BACK, () => {
 			let spy: jest.SpyInstance;
 			beforeEach(async () => {
 				spy = jest.spyOn(console, 'error').mockImplementation(() => null);
-				// contextManager = new CLIContextManager();
 				contextManager?.initialize(MockedContexts || {});
 			});
 
 			afterEach(async () => {
 				if (spy) spy.mockRestore();
-				// if (contextManager) contextManager = undefined;
 				jest.resetModules();
 			});
 
 			it("shouldn't exist and throw an UnrecognizedCommand error if executed from the root context", async () => {
-				contextManager?.send('back');
+				contextManager?.send(BACK);
 				const { message, success } = contextManager?.response || {};
 				const partialError =
 					INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].ERRORS.UnrecognizedCommand.split("'")[0];
 
 				expect(success).toBeFalsy();
-				expect(message).toContain(`${partialError}'back'`);
+				expect(message).toContain(`${partialError}'${BACK}'`);
 			});
 
-			it('accepts numeric parameters only', async () => {
-				const context = CONTEXT_NAMES.ROOT.CHARACTER_CONTEXT;
-				contextManager?.send(`${context} back${COMMAND_SPLITTING_SYMBOL}1`);
+			it('accepts positive numbers parameters only', async () => {
+				const COMMAND = [CHARACTER_CONTEXT, BACK];
+				let PARAMETER: string | number = 1;
+				contextManager?.send([...COMMAND, PARAMETER].join(COMMAND_SPLITTING_SYMBOL));
 				let response = contextManager?.response;
 				expect(response?.success).toBeTruthy();
 
-				contextManager?.send(`${context} back${COMMAND_SPLITTING_SYMBOL}211`);
+				PARAMETER = 211;
+				contextManager?.send([...COMMAND, PARAMETER].join(COMMAND_SPLITTING_SYMBOL));
 				response = contextManager?.response;
 				expect(response?.success).toBeTruthy();
 
-				contextManager?.send(`${context} back${COMMAND_SPLITTING_SYMBOL}000`);
+				PARAMETER = '000';
+				contextManager?.send([...COMMAND, PARAMETER].join(COMMAND_SPLITTING_SYMBOL));
 				response = contextManager?.response;
 				expect(response?.success).toBeTruthy();
 
-				contextManager?.send(`${context} back${COMMAND_SPLITTING_SYMBOL}test`);
+				PARAMETER = 'test';
+				contextManager?.send([...COMMAND, PARAMETER].join(COMMAND_SPLITTING_SYMBOL));
 				response = contextManager?.response;
 
 				expect(response?.success).toBeFalsy();
 
-				contextManager?.send(`${context} back${COMMAND_SPLITTING_SYMBOL}-1`);
+				PARAMETER = -1;
+				contextManager?.send([...COMMAND, PARAMETER].join(COMMAND_SPLITTING_SYMBOL));
 				response = contextManager?.response;
 
 				expect(response?.success).toBeFalsy();
@@ -240,7 +258,7 @@ describe('CLIContextManager', () => {
 				expect(contextManager?.contextDepth).toHaveLength(3);
 				expect(info?.contextDepth).toHaveLength(3);
 
-				contextManager?.send('back');
+				contextManager?.send(BACK);
 				info = contextManager?.response?.info;
 
 				expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(CHARACTER_PROMPT);
@@ -250,6 +268,7 @@ describe('CLIContextManager', () => {
 			it('goes back 3 levels if 3 is passed as a param', async () => {
 				const HEAD_PROMPT = `${MockedContexts?.[HEAD_CONTEXT].name} ${PROMPT_SUFFIX} `;
 				const ROOT_PROMPT = `${MockedContexts?.[ROOT_CONTEXT].name} ${PROMPT_SUFFIX} `;
+				const COMMAND = [BACK, 3]; // Trying to go 3 levels back
 
 				contextManager?.send(
 					[CHARACTER_CONTEXT, BODY_CONTEXT, HEAD_CONTEXT].join(COMMAND_SPLITTING_SYMBOL),
@@ -260,16 +279,17 @@ describe('CLIContextManager', () => {
 				expect(contextManager?.contextDepth).toHaveLength(4);
 				expect(info?.contextDepth).toHaveLength(4);
 
-				contextManager?.send(`back${COMMAND_SPLITTING_SYMBOL}3`);
+				contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 				info = contextManager?.response?.info;
 
 				expect(info?.prompt).toBe(ROOT_PROMPT);
 				expect(info?.contextDepth).toHaveLength(1);
 			});
 
-			it('goes back to the root level and stops if bigger number is passed', async () => {
+			it('goes back to the root level if the param is bigger then the actual depth', async () => {
 				const CONTEXT_GRANDCHILD_PROMPT = `${MockedContexts?.[HEAD_CONTEXT].name} ${PROMPT_SUFFIX} `;
 				const ROOT_PROMPT = `${MockedContexts?.[ROOT_CONTEXT].name} ${PROMPT_SUFFIX} `;
+				const COMMAND = [BACK, 50]; // Trying to go 50 levels back
 
 				contextManager?.send(
 					[CHARACTER_CONTEXT, BODY_CONTEXT, HEAD_CONTEXT].join(COMMAND_SPLITTING_SYMBOL),
@@ -282,7 +302,7 @@ describe('CLIContextManager', () => {
 				expect(contextManager?.contextDepth).toHaveLength(4);
 				expect(info?.contextDepth).toHaveLength(4);
 
-				contextManager?.send(`back${COMMAND_SPLITTING_SYMBOL}50`);
+				contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 				info = contextManager?.response?.info;
 
 				expect(info?.prompt).toBe(ROOT_PROMPT);
@@ -305,7 +325,7 @@ describe('CLIContextManager', () => {
 
 		describe('config', () => {
 			it('enters the config context', () => {
-				const COMMAND = 'config';
+				const COMMAND = CONFIG;
 				contextManager?.send(COMMAND);
 				const { prompt, response } = contextManager || {};
 				const { success, message } = response || {};
@@ -316,9 +336,9 @@ describe('CLIContextManager', () => {
 				);
 			});
 
-			it('enters the config context', () => {
-				const COMMAND = 'cfg';
-				const CONTEXT = 'config';
+			it('enters the config context using its alias', () => {
+				const CONTEXT = CONFIG;
+				const COMMAND = MockedContexts?.[ROOT_CONTEXT]?.commands?.[CONTEXT]?.aliases?.[0];
 
 				contextManager?.send(COMMAND);
 				const { prompt, response } = contextManager || {};
@@ -331,7 +351,7 @@ describe('CLIContextManager', () => {
 			});
 
 			it('throws na error if we try to go to config if we are already there', () => {
-				const COMMAND = 'config';
+				const COMMAND = CONFIG;
 
 				contextManager?.send(COMMAND);
 				contextManager?.send(COMMAND);
@@ -344,29 +364,35 @@ describe('CLIContextManager', () => {
 			});
 
 			it('validates the promptFormat command', () => {
-				const CONTEXT = 'config';
-				const COMMAND = 'promptF';
-				let commandElements = [CONTEXT, COMMAND, 'f'];
-				contextManager?.send(commandElements.join(COMMAND_SPLITTING_SYMBOL));
-				let prompt = contextManager?.prompt;
-				expect(prompt).toBe(
-					`${ROOT_CONTEXT}${PROMPT_SPLITTING_SYMBOL}${CONTEXT} ${PROMPT_SUFFIX} `,
-				);
+				const CONTEXT = CONFIG;
+				contextManager?.send(CONTEXT); // go to the correct context
 
-				commandElements = [COMMAND, 'n'];
-				contextManager?.send(commandElements.join(COMMAND_SPLITTING_SYMBOL));
-				prompt = contextManager?.prompt;
-				expect(prompt).toBe(`${CONTEXT} ${PROMPT_SUFFIX} `);
+				const testPrompt = (parameter: string, expectedPrompt: string) => {
+					const COMMAND = [PROMPT_FORMAT_COMMAND, parameter];
+					contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
+					const prompt = contextManager?.prompt;
+					expect(prompt).toBe(expectedPrompt);
+				};
 
-				commandElements = [COMMAND, 'b'];
-				contextManager?.send(commandElements.join(COMMAND_SPLITTING_SYMBOL));
-				prompt = contextManager?.prompt;
-				expect(prompt).toBe(`${PROMPT_SUFFIX} `);
+				const getExpectedPrompt = (elements: string[]) => {
+					const SUFFIX = elements.pop();
+					const PROMPT_SUFFIX =
+						(elements.length > 0 ? COMMAND_SPLITTING_SYMBOL : '') +
+						`${SUFFIX}${COMMAND_SPLITTING_SYMBOL}`;
+
+					return elements.join(PROMPT_SPLITTING_SYMBOL) + PROMPT_SUFFIX;
+				};
+
+				testPrompt('f', getExpectedPrompt([ROOT_CONTEXT, CONTEXT, PROMPT_SUFFIX]));
+
+				testPrompt('n', getExpectedPrompt([CONTEXT, PROMPT_SUFFIX]));
+
+				testPrompt('b', getExpectedPrompt([PROMPT_SUFFIX]));
 			});
 
 			it('validates the promptSuffix command', () => {
 				const NEW_SUFFIX = '$$';
-				const COMMAND = [COMMAND_NAMES.CONFIG, COMMAND_NAMES.PROMPT_SUFFIX, NEW_SUFFIX];
+				const COMMAND = [CONFIG, PROMPT_SUFFIX_COMMAND, NEW_SUFFIX];
 				contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 				const prompt = contextManager?.prompt;
 				expect(prompt).toContain(`${NEW_SUFFIX} `);
@@ -374,7 +400,7 @@ describe('CLIContextManager', () => {
 
 			it('validates the promptPrefix command', () => {
 				const NEW_PREFIX = '{';
-				const COMMAND = [COMMAND_NAMES.CONFIG, COMMAND_NAMES.PROMPT_PREFIX, NEW_PREFIX];
+				const COMMAND = [CONFIG, PROMPT_PREFIX_COMMAND, NEW_PREFIX];
 				contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 				const prompt = contextManager?.prompt;
 				expect(prompt).toContain(NEW_PREFIX);
@@ -384,8 +410,8 @@ describe('CLIContextManager', () => {
 				const NEW_PROMPT_SPLITTING_SYMBOL = ' : ';
 				const ADDITIONAL_DUMMY_PARAMETER = ' blbbb aaasdasd ';
 				const COMMAND = [
-					COMMAND_NAMES.CONFIG,
-					COMMAND_NAMES.PROMPT_SPLITTING_SYMBOL,
+					CONFIG,
+					PROMPT_SPLITTING_SYMBOL_COMMAND,
 					`'${NEW_PROMPT_SPLITTING_SYMBOL}'`,
 					`'${ADDITIONAL_DUMMY_PARAMETER}'`,
 				];
@@ -400,13 +426,11 @@ describe('CLIContextManager', () => {
 		let spy: jest.SpyInstance;
 		beforeEach(async () => {
 			spy = jest.spyOn(console, 'error').mockImplementation(() => null);
-			// contextManager = new CLIContextManager();
 			contextManager?.initialize(MockedContexts || {});
 		});
 
 		afterEach(async () => {
 			if (spy) spy.mockRestore();
-			// if (contextManager) contextManager = undefined;
 			jest.resetModules();
 		});
 
@@ -460,7 +484,7 @@ describe('CLIContextManager', () => {
 			const { success, message } = contextManager?.response || {};
 
 			expect(success).toBeFalsy();
-			expect(message).toContain('Unrecognized or ambiguous command');
+			expect(message).toContain('Unrecognized or ambiguous command'); // TODO use the strings
 			expect(message).toContain(filteredMockedCommands.join(', '));
 		});
 
@@ -498,7 +522,7 @@ describe('CLIContextManager', () => {
 		});
 
 		it('validates a simple command which results in single action (start)', async () => {
-			const COMMAND_NAME = 'list';
+			const COMMAND_NAME = LIST;
 			const EXPECTED_PROMPT = `${MockedContexts?.[ROOT_CONTEXT].name} ${PROMPT_SUFFIX} `;
 			const EXPECTED_ACTION = MockedContexts?.[ROOT_CONTEXT].commands[COMMAND_NAME].action;
 
@@ -751,7 +775,9 @@ describe('CLIContextManager', () => {
 		});
 
 		it('recognizes and executes context aliases', async () => {
-			const ALIAS = 'ui';
+			const ALIAS = MockedContexts?.[ROOT_CONTEXT]?.commands[UI_SETTINGS]?.aliases?.[0];
+			expect(ALIAS?.length).toBeGreaterThan(0);
+
 			contextManager?.send(ALIAS);
 			const { success, message, info } = contextManager?.response || {};
 
@@ -770,33 +796,38 @@ describe('CLIContextManager', () => {
 		});
 
 		it('recognizes and executes command aliases', async () => {
-			const ALIAS = 'l';
-			contextManager?.send(ALIAS); // 'go' is an alias for 'start'
+			const ALIAS = MockedContexts?.[ROOT_CONTEXT]?.commands[LIST]?.aliases?.[0];
+			const ACTION_NAME = MockedContexts?.[ROOT_CONTEXT]?.commands[LIST]?.action?.name;
+			expect(ALIAS?.length).toBeGreaterThan(0);
+			expect(ACTION_NAME?.length).toBeGreaterThan(0);
+
+			contextManager?.send(ALIAS);
 			const { success, message, actions } = contextManager?.response || {};
 
 			expect(success).toBeTruthy();
 			expect(message).toContain(INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].HINTS.ProcessedCommand);
 			expect(actions).toHaveLength(1);
-			expect(actions?.[0].name).toBe('listAssetsAction');
+			expect(actions?.[0].name).toBe(ACTION_NAME);
 		});
 
 		it('allows multiple aliases for the same command to be executed resulting in the same action', async () => {
-			let ALIAS = 'h';
 			const helpAction = MockedContexts?.[ROOT_CONTEXT].commands.help.action;
 			const implicitlyExecuteHelpAction = INTERNAL.commands.cli?.help?.action;
+			const ALIASES = MockedContexts?.[ROOT_CONTEXT]?.commands[HELP].aliases;
+			expect(ALIASES).toBeDefined();
+			expect(ALIASES?.length).toBeGreaterThan(1);
 
-			contextManager?.send(ALIAS);
-			const { success, message, actions } = contextManager?.response || {};
-			expect(success).toBeTruthy();
-			expect(message).toContain(INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].HINTS.ProcessedCommand);
-			expect(actions).toHaveLength(1);
-			expect(actions?.[0].name).toBe(helpAction?.name);
-			expect(actions?.[0].name).toBe(implicitlyExecuteHelpAction?.name);
-
-			ALIAS = '?';
-			contextManager?.send(ALIAS);
-			const { actions: otherActions } = contextManager?.response || {};
-			expect(actions?.[0].name).toBe(otherActions?.[0]?.name);
+			ALIASES?.forEach((alias) => {
+				contextManager?.send(alias);
+				const { success, message, actions } = contextManager?.response || {};
+				expect(success).toBeTruthy();
+				expect(message).toContain(
+					INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].HINTS.ProcessedCommand,
+				);
+				expect(actions).toHaveLength(1);
+				expect(actions?.[0].name).toBe(helpAction?.name);
+				expect(actions?.[0].name).toBe(implicitlyExecuteHelpAction?.name);
+			});
 		});
 	});
 
@@ -812,8 +843,8 @@ describe('CLIContextManager', () => {
 			jest.resetModules();
 		});
 
-		it(`throws error if parameter is required but not provided (${CHARACTER_CONTEXT} age)`, async () => {
-			const COMMAND = 'age';
+		it(`throws error if parameter is required but not provided (${CHARACTER_CONTEXT} ${AGE})`, async () => {
+			const COMMAND = AGE;
 			const EXPECTED_ACTION = MockedContexts?.[CHARACTER_CONTEXT].commands?.[COMMAND].action;
 
 			contextManager?.send(`${CHARACTER_CONTEXT}${COMMAND_SPLITTING_SYMBOL}${COMMAND}`);
@@ -827,59 +858,36 @@ describe('CLIContextManager', () => {
 		});
 
 		it(`throws error if the parameter is provided but doesn't pass validity check (${CHARACTER_CONTEXT} age test)`, async () => {
-			const COMMAND = 'age';
-			let PARAMETER = 'test';
+			const COMMAND = AGE;
 			const EXPECTED_ACTION = MockedContexts?.[CHARACTER_CONTEXT].commands?.[COMMAND].action;
 
-			contextManager?.send(
-				`${CHARACTER_CONTEXT}${COMMAND_SPLITTING_SYMBOL}${COMMAND}${COMMAND_SPLITTING_SYMBOL}${PARAMETER}`,
-			);
-			let response = contextManager?.response;
-			expect(EXPECTED_ACTION).toBeDefined();
-			expect(response?.success).toBeFalsy();
-			expect(response?.message).toBeDefined();
+			// Go to the correct context
+			contextManager?.send(CHARACTER_CONTEXT);
 
-			PARAMETER = '17';
-			contextManager?.send(`${COMMAND}${COMMAND_SPLITTING_SYMBOL}${PARAMETER}`);
-			response = contextManager?.response;
-			expect(response?.success).toBeFalsy();
-			expect(response?.message).toContain('Invalid format');
-			expect(response?.message).toContain(EXPECTED_ACTION?.parameter?.hint);
-			let action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
-			expect(action).toBeUndefined();
+			// test against invalid parameters
+			['test', '17', '018'].forEach((param) => {
+				contextManager?.send([COMMAND, param].join(COMMAND_SPLITTING_SYMBOL));
+				const { success, message, actions } = contextManager?.response || {};
+				expect(success).toBeFalsy();
+				expect(message).toContain('Invalid format');
+				expect(message).toContain(EXPECTED_ACTION?.parameter?.hint);
+				const action = actions?.find((action) => action.name === EXPECTED_ACTION?.name);
+				expect(action).toBeUndefined();
+			});
 
-			PARAMETER = '018';
-			contextManager?.send(`${COMMAND}${COMMAND_SPLITTING_SYMBOL}${PARAMETER}`);
-			response = contextManager?.response;
-			expect(response?.success).toBeFalsy();
-			expect(response?.message).toContain('Invalid format');
-			expect(response?.message).toContain(EXPECTED_ACTION?.parameter?.hint);
-			action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
-			expect(action).toBeUndefined();
-
-			PARAMETER = '18';
-			contextManager?.send(`${COMMAND}${COMMAND_SPLITTING_SYMBOL}${PARAMETER}`);
-			response = contextManager?.response;
-			expect(response?.success).toBeTruthy();
-			action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
-			expect(action?.name).toBe(EXPECTED_ACTION?.name);
-			expect(action?.parameter?.value).toBe('18');
-
-			PARAMETER = '33';
-			contextManager?.send(`${COMMAND}${COMMAND_SPLITTING_SYMBOL}${PARAMETER}`);
-			response = contextManager?.response;
-			action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
-			expect(action?.parameter?.value).toBe('33');
-
-			PARAMETER = '121';
-			contextManager?.send(`${COMMAND}${COMMAND_SPLITTING_SYMBOL}${PARAMETER}`);
-			response = contextManager?.response;
-			action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
-			expect(action?.parameter?.value).toBe('121');
+			// test against valid parameters
+			['18', '33', '121'].forEach((param) => {
+				contextManager?.send([COMMAND, param].join(COMMAND_SPLITTING_SYMBOL));
+				const { success, actions } = contextManager?.response || {};
+				expect(success).toBeTruthy();
+				const action = actions?.find((action) => action.name === EXPECTED_ACTION?.name);
+				expect(action?.name).toBe(EXPECTED_ACTION?.name);
+				expect(action?.parameter?.value).toBe(param);
+			});
 		});
 
 		it(`throws an error if the parameter is provided but is not among the accepted values in the set (${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} color test)`, async () => {
-			const COMMAND = 'color';
+			const COMMAND = COLOR;
 			let PARAMETER = 'test';
 			const FULL_COMMAND = [
 				CHARACTER_CONTEXT,
@@ -906,19 +914,20 @@ describe('CLIContextManager', () => {
 			response = contextManager?.response;
 			expect(response?.success).toBeTruthy();
 			action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
-			expect(action?.parameter?.value).toBe('brown');
+			expect(action?.parameter?.value).toBe(PARAMETER);
 		});
 
 		it(`throws an error if the parameter provided results in more then one possible parameters(${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} col b)`, async () => {
-			const COMMAND = 'color',
-				PARAMETER = 'b',
+			const COMMAND = COLOR,
+				PARAMETERS = ['black', 'brown', 'blonde'],
+				PARTIAL_PARAMETER = PARAMETERS[0].substring(0, 1), // b
 				FULL_COMMAND = [
 					CHARACTER_CONTEXT,
 					BODY_CONTEXT,
 					HEAD_CONTEXT,
 					HAIR_CONTEXT,
 					COMMAND,
-					PARAMETER,
+					PARTIAL_PARAMETER,
 				];
 
 			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
@@ -928,11 +937,11 @@ describe('CLIContextManager', () => {
 			expect(message).toContain(
 				INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].ERRORS.UnrecognizedParameter,
 			);
-			expect(message).toContain(['black', 'brown', 'blonde'].join(', '));
+			expect(message).toContain(PARAMETERS.join(', '));
 		});
 
 		it(`make sure the default parameter is used if no parameter is provided(${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} len)`, async () => {
-			const COMMAND = 'length',
+			const COMMAND = LENGTH,
 				FULL_COMMAND = [CHARACTER_CONTEXT, BODY_CONTEXT, HEAD_CONTEXT, HAIR_CONTEXT, COMMAND];
 			const EXPECTED_ACTION = MockedContexts?.[HAIR_CONTEXT].commands?.[COMMAND].action;
 
@@ -946,9 +955,9 @@ describe('CLIContextManager', () => {
 		});
 
 		it(`accepts and autocompletes partially written parameters if they don't cause ambiguity from the set(${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} col br)`, async () => {
-			const COMMAND = 'color',
-				PARTIAL_PARAMETER = 'br',
+			const COMMAND = COLOR,
 				FULL_PARAMETER = 'brown',
+				PARTIAL_PARAMETER = FULL_PARAMETER.substring(0, 2),
 				FULL_COMMAND = [
 					CHARACTER_CONTEXT,
 					BODY_CONTEXT,
@@ -957,7 +966,6 @@ describe('CLIContextManager', () => {
 					COMMAND,
 					PARTIAL_PARAMETER,
 				];
-			// FULL_COMMAND = `${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} ${COMMAND} ${PARTIAL_PARAMETER}`;
 			const EXPECTED_ACTION = MockedContexts?.[HAIR_CONTEXT].commands?.[COMMAND].action;
 			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 			const response = contextManager?.response;
@@ -1021,7 +1029,7 @@ describe('CLIContextManager', () => {
 			if (!MockedContexts) {
 				throw new Error('MockedContexts is undefined');
 			}
-			const PARTIAL_COMMAND = 'h';
+			const PARTIAL_COMMAND = HELP.substring(0, 1);
 			const filteredMockedCommands = Object.keys(MockedContexts?.[BODY_CONTEXT].commands).filter(
 				(el) => el.startsWith(PARTIAL_COMMAND),
 			);
@@ -1039,7 +1047,7 @@ describe('CLIContextManager', () => {
 			if (!MockedContexts) {
 				throw new Error('MockedContexts is undefined');
 			}
-			const PARTIAL_COMMAND = 'li';
+			const PARTIAL_COMMAND = LIST.substring(0, 2);
 			const filteredMockedCommands = Object.keys(MockedContexts[ROOT_CONTEXT].commands).filter(
 				(el) => el.startsWith(PARTIAL_COMMAND),
 			);
@@ -1053,35 +1061,44 @@ describe('CLIContextManager', () => {
 
 			expect(commandElements?.[0]).toBe(filteredMockedCommands[0]);
 			expect(commandElements).toHaveLength(1);
+			expect(commandElements?.includes(LIST)).toBeTruthy();
 		});
 
 		it('returns autocompleted command names for all partially written commands in the input string', async () => {
-			const PARTIAL_COMMAND = `${CHARACTER_CONTEXT.substring(0, 2)} ${BODY_CONTEXT.substring(0, 2)} ${HEAD_CONTEXT.substring(0, 3)} hai col br`;
-			const FULL_COMMANDS = [
+			const PARAMETER = 'br';
+			const COMMANDS = [
+				CHARACTER_CONTEXT.substring(0, 2),
+				BODY_CONTEXT.substring(0, 2),
+				HEAD_CONTEXT.substring(0, 3),
+				HAIR_CONTEXT.substring(0, 3),
+				COLOR.substring(0, 3),
+				PARAMETER,
+			];
+			const COMPLETED_COMMANDS = [
 				CHARACTER_CONTEXT,
 				BODY_CONTEXT,
 				HEAD_CONTEXT,
 				HAIR_CONTEXT,
-				'color',
+				COLOR,
 			];
 
-			contextManager?.autocomplete(PARTIAL_COMMAND);
+			contextManager?.autocomplete(COMMANDS.join(COMMAND_SPLITTING_SYMBOL));
 			const autoCompleteOutput = contextManager?.response?.autoCompleteOutput;
 			const commandElements = autoCompleteOutput?.commands
 				?.trim()
 				?.split(COMMAND_SPLITTING_SYMBOL);
 
 			expect(commandElements).toHaveLength(5);
-			FULL_COMMANDS.map((element, index) => {
+			COMPLETED_COMMANDS.map((element, index) => {
 				expect(commandElements?.indexOf(element)).toBe(index);
 			});
 		});
 
 		it('returns message for the accepted parameters if the command requires parameter', async () => {
-			const PARTIAL_COMMAND = `${CHARACTER_CONTEXT} fname`;
-			const helpCommand = MockedContexts?.[CHARACTER_CONTEXT].commands.fname;
+			const COMMANDS = [CHARACTER_CONTEXT, FIRST_NAME];
+			const helpCommand = MockedContexts?.[CHARACTER_CONTEXT].commands[FIRST_NAME];
 
-			contextManager?.autocomplete(PARTIAL_COMMAND);
+			contextManager?.autocomplete(COMMANDS.join(COMMAND_SPLITTING_SYMBOL));
 			const info = contextManager?.response?.info;
 
 			expect(info?.parameter).toBeDefined();
@@ -1089,10 +1106,10 @@ describe('CLIContextManager', () => {
 		});
 
 		it('returns the possible parameters if the command accepts a set of parameters', async () => {
-			const PARTIAL_COMMAND = `${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} color`;
-			const helpCommand = MockedContexts?.[HAIR_CONTEXT].commands.color;
+			const COMMANDS = [CHARACTER_CONTEXT, BODY_CONTEXT, HEAD_CONTEXT, HAIR_CONTEXT, COLOR];
+			const helpCommand = MockedContexts?.[HAIR_CONTEXT].commands[COLOR];
 
-			contextManager?.autocomplete(PARTIAL_COMMAND);
+			contextManager?.autocomplete(COMMANDS.join(COMMAND_SPLITTING_SYMBOL));
 			const info = contextManager?.response?.info;
 
 			expect(info?.parameter).toBeDefined();
@@ -1102,15 +1119,24 @@ describe('CLIContextManager', () => {
 		});
 
 		it('autocompletes the parameter and returns the whole parameter if the the partial input is not ambiguous for a command with a set of parameters', async () => {
-			const PARTIAL_COMMAND = `${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} color bro`;
+			const PARTIAL_PARAMETER = 'bro';
+			const COMPLETE_PARAMETER = 'brown';
+			const COMMANDS = [
+				CHARACTER_CONTEXT,
+				BODY_CONTEXT,
+				HEAD_CONTEXT,
+				HAIR_CONTEXT,
+				COLOR,
+				PARTIAL_PARAMETER,
+			];
 
-			contextManager?.autocomplete(PARTIAL_COMMAND);
+			contextManager?.autocomplete(COMMANDS.join(COMMAND_SPLITTING_SYMBOL));
 			const info = contextManager?.response?.info;
 			const autoCompleteOutput = contextManager?.response?.autoCompleteOutput;
 
 			expect(info?.parameter).toBeDefined();
-			expect(info?.parameter?.value).toBe('brown');
-			expect(autoCompleteOutput?.all?.split(' ').includes('brown')).toBeTruthy();
+			expect(info?.parameter?.value).toBe(COMPLETE_PARAMETER);
+			expect(autoCompleteOutput?.all?.split(' ').includes(COMPLETE_PARAMETER)).toBeTruthy();
 		});
 	});
 });

@@ -15,6 +15,7 @@
 		"builder"
 	],
 	"scripts": {
+		"prebuild": "node ./scripts/getFiles.js",
 		"clean": "rm -rf ./dist",
 		"compile:es5": "rm -rf ./dist/lib/es5 && npx tsc --build tsconfig.es5.json",
 		"compile:es6": "rm -rf ./dist/lib/es6 && npx tsc --build tsconfig.es6.json",
@@ -24,10 +25,11 @@
 		"compile:mocks": "npm run compile:mocks:es5 && npm run compile:mocks:es6",
 		"compile:demo:cli": "rm -rf ./dist/demo/cli && npx tsc --build src/demo/cli/tsconfig.demo.json",
 		"compile": "npm run clean && npm run compile:lib && npm run compile:mocks && npm run compile:demo:cli",
-		"demo:cli:lib": "npm run compile && node src/demo/cli/index.cjs",
-		"demo:cli:ts": "npx ts-node -P src/demo/cli/tsconfig.demo.json src/demo/cli/index.ts",
-		"demo:cli": "npm run demo:cli:lib",
-		"demo:web": "cd src/demo/web && npm run dev",
+		"run:cli:lib": "npm run compile && node src/demo/cli/index.cjs",
+		"run:cli:ts": "npx ts-node -P src/demo/cli/tsconfig.demo.json src/demo/cli/index.ts",
+		"run:cli": "npm run demo:cli:lib",
+		"run:web": "cd src/demo/web && npm run dev",
+		"build:web": "cd src/demo/web && npm run build",
 		"test": "npm run clean && npx jest --config jest.config.js",
 		"test:watch": "npm run clean && npx jest --config jest.config.js --watch",
 		"test:coverage": "npm run clean && npx jest --config jest.config.js --coverage"

@@ -1,4 +1,4 @@
-import { IResponse } from './types';
+import type { IResponse } from './types';
 
 export class ContextResponse extends Error implements IResponse {
 	success: boolean;
