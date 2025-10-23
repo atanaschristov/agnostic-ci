@@ -16,6 +16,7 @@ import type {
 	UpdateContextMode,
 } from './ContextManagerBase';
 import type {
+	IAdditionalInfo,
 	ICommandActionParameter,
 	ICommandNode,
 	IContextContainer,
@@ -366,12 +367,11 @@ export class CLIContextManager extends ContextManagerBase {
 
 	private prepareParameterProcessedInput(
 		value?: string,
-		parameterRequirement?: ICommandActionParameter,
+		parameterTemplate?: ICommandActionParameter & IAdditionalInfo,
 	) {
-		const { processedDepth, command, pendingActions, processedInputString } =
-			this._processedInput || {};
+		const { pendingActions, processedInputString } = this._processedInput || {};
 
-		const parameter = this.prepareParameterStructure(value, parameterRequirement);
+		const parameter = this.prepareParameterStructure(value, parameterTemplate);
 
 		const commandAction = pendingActions?.[pendingActions.length - 1];
 		if (commandAction) {
@@ -383,9 +383,8 @@ export class CLIContextManager extends ContextManagerBase {
 			: `${processedInputString}${COMMAND_SPLITTING_SYMBOL}${value}`;
 
 		this._processedInput = {
-			processedDepth,
+			...this._processedInput,
 			processedInputString: inputString,
-			command,
 			parameter,
 			pendingActions,
 		};
@@ -398,19 +397,23 @@ export class CLIContextManager extends ContextManagerBase {
 		commandNode: ICommandNode,
 		mode: TAnalyzeMode = 'execute',
 	) {
-		const { parameter: parameterRequirement } = commandNode?.action || {};
+		const { parameter: parameterTemplate } = commandNode?.action || {};
 		const { defaultValue, required, valueFormatLimitation, type, possibleValues } =
-			parameterRequirement || {};
+			parameterTemplate || {};
 
 		const commandParameter = inputArr.join(COMMAND_SPLITTING_SYMBOL);
 
-		// use the default value if there is nothing and default value exists.
+		// Case1: use the default value if it exists and a command parameter is not provided.
 		// The default value is supposed to be provided from the schema,
-		if (!commandParameter && defaultValue && parameterRequirement) {
-			this.prepareParameterProcessedInput(defaultValue, parameterRequirement);
+		if (!commandParameter && defaultValue && parameterTemplate) {
+			this.prepareParameterProcessedInput(defaultValue, parameterTemplate);
 			return;
 		}
 
+		// Case2: Throw an error if a parameter is not provided but it is required
+		// if the request is not to execute the command but to autocomplete it
+		// we shouldn't throw an error but keep on so we provide the possible
+		// values
 		if (required && !commandParameter && mode === 'execute') {
 			this._processedInput = {
 				...this.generateErrorMessage(
@@ -422,6 +425,8 @@ export class CLIContextManager extends ContextManagerBase {
 			return;
 		}
 
+		// Case3: If the provided parameter is not set then we should check if its format
+		// fulfills the regular expressions if any
 		if (
 			type !== 'set' &&
 			commandParameter &&
@@ -442,35 +447,52 @@ export class CLIContextManager extends ContextManagerBase {
 			return;
 		}
 
+		// Case4: If the provided parameter is of type "set" then we should check if
+		// it resolves to one or more of the possible values within the "set"
+		// if the provided param is partial and resolves to one value, the parameter is
+		// auto completed, otherwise the param is updated to meet the longest common prefix
 		if (type === 'set' && possibleValues) {
 			const possibleParams = possibleValues.filter((element) =>
 				element.startsWith(commandParameter || ''),
 			);
 
 			if (possibleParams.length === 0) {
-				this._processedInput = this.generateErrorMessage(
-					`${this._translate('ERRORS.UnrecognizedParameter')} ${this._translate(
-						'HINTS.AvailableParameters',
-						{ command: commandNode.name, parameters: possibleValues.join(', ') },
-					)}`,
-					MESSAGE_CODES.ERROR_INVALID_PARAMETER,
-				);
-				return;
+				this._processedInput = {
+					...this._processedInput,
+					...this.generateErrorMessage(
+						`${this._translate('ERRORS.UnrecognizedParameter')} ${this._translate(
+							'HINTS.AvailableParameters',
+							{ command: commandNode.name, parameters: possibleValues.join(', ') },
+						)}`,
+						MESSAGE_CODES.ERROR_INVALID_PARAMETER,
+					),
+				};
 			}
 
-			if (possibleParams.length > 1 && mode !== 'autocomplete') {
-				this._processedInput = this.generateErrorMessage(
-					`${this._translate('ERRORS.UnrecognizedParameter')} ${this._translate(
-						'HINTS.AvailableParameters',
-						{ command: commandNode.name, parameters: possibleParams.join(', ') },
-					)}`,
-					MESSAGE_CODES.ERROR_INVALID_PARAMETER,
-				);
-				return;
+			if (possibleParams.length > 1) {
+				this._processedInput = {
+					...this._processedInput,
+					...this.generateErrorMessage(
+						`${this._translate('ERRORS.UnrecognizedParameter')} ${this._translate(
+							'HINTS.AvailableParameters',
+							{ command: commandNode.name, parameters: possibleParams.join(', ') },
+						)}`,
+						MESSAGE_CODES.ERROR_INVALID_PARAMETER,
+					),
+				};
 			}
-			this.prepareParameterProcessedInput(possibleParams[0], parameterRequirement);
+
+			const extendedParamTemplate = {
+				...parameterTemplate,
+				isNameOrValuePartial: possibleParams.length > 1,
+			} as ICommandActionParameter & IAdditionalInfo;
+
+			this.prepareParameterProcessedInput(
+				possibleParams.length === 0 ? possibleParams[0] : longestCommonPrefix(possibleParams),
+				extendedParamTemplate,
+			);
 		} else {
-			this.prepareParameterProcessedInput(commandParameter, parameterRequirement);
+			this.prepareParameterProcessedInput(commandParameter, parameterTemplate);
 		}
 	}
 
