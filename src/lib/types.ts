@@ -33,7 +33,7 @@ export interface ICommandNode extends IMetaInfo {
 }
 
 export interface ICommandActionParameter extends IMetaInfo {
-	type: 'string' | 'number' | 'boolean' | 'object' | 'set';
+	type: 'string' | 'number' | 'boolean' | 'set';
 	required?: boolean;
 	defaultValue?: string;
 	possibleValues?: string[];

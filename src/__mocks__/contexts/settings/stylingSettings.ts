@@ -11,7 +11,7 @@ export default {
 	name: 'styling',
 	commands: {
 		// Example of a context command with an action, with parameters
-		// TODO implment context commands with an action supporting parameters
+		// TODO implement context commands with an action supporting parameters
 		[COMMAND_NAMES.FONTS]: {
 			name: COMMAND_NAMES.FONTS,
 			type: 'context',
@@ -22,7 +22,7 @@ export default {
 				parameter: {
 					type: 'boolean',
 					required: true,
-					default: 'false',
+					default: false,
 				},
 			},
 		} as ICommandNode,

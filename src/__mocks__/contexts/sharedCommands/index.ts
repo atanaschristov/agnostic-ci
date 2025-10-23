@@ -1,11 +1,7 @@
-import exitCmd from './exitCmd';
-import uiSettingsCommand from './uiSettingsCmd';
-import listCommand from './listCommand';
+import UISettingsCommand from './uiSettingsCmd';
 
 export const SHARED_COMMAND_NAMES = {
-	EXIT: exitCmd.name,
-	LIST: listCommand.name,
-	UI_SETTINGS: uiSettingsCommand.name,
+	UI_SETTINGS: UISettingsCommand.name,
 };
 
-export { exitCmd, uiSettingsCommand, listCommand };
+export { UISettingsCommand };

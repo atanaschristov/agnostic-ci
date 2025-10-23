@@ -1,5 +1,4 @@
-import { CONTEXT_NAMES } from '../constants';
-import { COMMAND_NAMES } from '../constants';
+import { COMMAND_NAMES, CONTEXT_NAMES } from '../constants';
 
 export const CODE = 'en';
 
@@ -25,10 +24,10 @@ export default {
 		},
 	},
 	[CONTEXT_NAMES.SETTINGS_CONTEXT]: {
-		[COMMAND_NAMES.STYLING]: {
+		[COMMAND_NAMES.UI_SETTINGS_STYLING]: {
 			description: 'Go to styling context',
 		},
-		[COMMAND_NAMES.RESET]: {
+		[COMMAND_NAMES.UI_SETTINGS_RESET]: {
 			description: 'Resets all settings',
 		},
 	},

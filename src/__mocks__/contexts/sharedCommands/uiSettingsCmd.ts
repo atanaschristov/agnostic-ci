@@ -5,5 +5,5 @@ export default {
 	name: CONTEXT_NAME,
 	type: 'context',
 	aliases: ['ui', 'set'],
-	isolated: true,
+	// isolated: true, // TODO: to be implemented
 } as ICommandNode;

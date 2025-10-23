@@ -241,9 +241,9 @@ export class CLIContextManager extends ContextManagerBase {
 				command: commandMetaInfo,
 			};
 
-			if (inputValue !== commandName && mode === 'autocomplete') return;
+			if (inputValue !== commandName && mode === 'autocomplete' && !inputArr.length) return;
 
-			this.processParameters(inputArr, commandNode);
+			this.processParameters(inputArr, commandNode, mode);
 		}
 	}
 
@@ -396,7 +396,7 @@ export class CLIContextManager extends ContextManagerBase {
 	private processParameters(
 		inputArr: string[],
 		commandNode: ICommandNode,
-		// mode: TAnalyzeMode = 'execute',
+		mode: TAnalyzeMode = 'execute',
 	) {
 		const { parameter: parameterRequirement } = commandNode?.action || {};
 		const { defaultValue, required, valueFormatLimitation, type, possibleValues } =
@@ -411,7 +411,7 @@ export class CLIContextManager extends ContextManagerBase {
 			return;
 		}
 
-		if (required && !commandParameter) {
+		if (required && !commandParameter && mode === 'execute') {
 			this._processedInput = {
 				...this.generateErrorMessage(
 					`${this._translate('ERRORS.MissingParameter')}`,
@@ -458,7 +458,7 @@ export class CLIContextManager extends ContextManagerBase {
 				return;
 			}
 
-			if (possibleParams.length > 1) {
+			if (possibleParams.length > 1 && mode !== 'autocomplete') {
 				this._processedInput = this.generateErrorMessage(
 					`${this._translate('ERRORS.UnrecognizedParameter')} ${this._translate(
 						'HINTS.AvailableParameters',

@@ -1,28 +1,20 @@
-import {
-	ContextContainer as EBookContextContainer,
-	ContextEntryCommand as EBookContextEntryCommand,
-} from '../../../__mocks__/contexts/ebookInterface';
-import { IContextDefinition } from '../../../lib/types';
-import {
-	ContextContainer as DocContextContainer,
-	ContextEntryCommands as DocContextEntryCommands,
-} from './commandInterface/doc/';
+import { useMemo } from 'react';
+import MockedContexts from '../../../__mocks__/contexts/';
 
-const InitialContext = {
-	name: 'lobby',
-	isInitialContext: true,
-	commands: {
-		[EBookContextEntryCommand.name]: EBookContextEntryCommand,
-		...DocContextEntryCommands,
-	},
-} as IContextDefinition;
-
-export const getSchema = () => {
+const getSchema = () => {
 	return {
-		...DocContextContainer,
-		...EBookContextContainer,
-		[InitialContext.name]: InitialContext,
+		...MockedContexts,
 	};
+};
+
+export const useSchema = () => {
+	return useMemo(() => {
+		const SCHEMA = getSchema();
+		return {
+			LOCALES: undefined,
+			SCHEMA,
+		};
+	}, []);
 };
 
 export const prepareStrings = () => {};

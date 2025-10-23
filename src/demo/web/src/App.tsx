@@ -1,5 +1,4 @@
 import bem from 'bem-cn';
-import COMMAND_INTERFACE from './commandInterface';
 import DemoCLIContextManager from './components/demoCLI/DemoCLIContextManager.tsx';
 import DemoOptionsContextManager from './components/demoOptions/DemoOptionsContextManager.tsx';
 
@@ -10,7 +9,7 @@ import { OptionsContextManager } from '../../../lib/OptionsContextManager.ts';
 import { IActionResponse, IResponse } from '../../../lib/types.ts';
 import { CLIContextManager } from '../../../lib/CLIContextManager.ts';
 import { ContextManager } from '../../../lib/ContextManager.ts';
-import { getSchema } from './utils.ts';
+import { useSchema } from './utils.ts';
 
 import './App.scss';
 
@@ -32,23 +31,13 @@ function App() {
 	};
 
 	const commandActions = useMemo(() => {
-		return { ...COMMAND_INTERFACE.DOC.ACTIONS, ...ACTIONS };
+		return { ...ACTIONS };
 	}, []);
 
-	const contextManagers = useMemo(() => {
-		const prepareSchema = () => {
-			// ContextSchema.lobby.commands = {
-			// 	...ContextSchema.lobby.commands,
-			// 	...COMMAND_INTERFACE.DOC.COMMANDS,
-			// };
-			return {
-				LOCALES: undefined,
-				SCHEMA: getSchema(),
-				// SCHEMA: { ...ContextSchema, ...COMMAND_INTERFACE.DOC.CONTEXTS } as IContextContainer,
-			};
-		};
+	const preparedSchema = useSchema();
 
-		const { LOCALES, SCHEMA } = prepareSchema();
+	const contextManagers = useMemo(() => {
+		const { LOCALES, SCHEMA } = preparedSchema;
 		const cli = new ContextManager('cli').managerInstance;
 		cli?.initialize(structuredClone(SCHEMA), structuredClone(LOCALES));
 
