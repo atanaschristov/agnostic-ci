@@ -1,0 +1,9 @@
+name: CI on Push
+
+on:
+   push:
+      branches: ['**']
+
+jobs:
+   call-common-ci:
+      uses: ./.github/workflows/common.yml

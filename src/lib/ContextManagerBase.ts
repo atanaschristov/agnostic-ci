@@ -49,6 +49,8 @@ export class ContextManagerBase {
 
 	protected _configuration?: IContextConfiguration;
 	protected _processedInput?: IProcessedInput;
+	// TODO temporary solution. A way to instantiate it is needed. undefined is not an option
+	// @ts-expect-error Property '_translate' is initialized in initialize() method
 	protected _translate: i18next.TFunction<['translation', ...string[]], undefined>;
 	protected _response?: IResponse = undefined;
 
