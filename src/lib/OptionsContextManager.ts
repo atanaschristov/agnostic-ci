@@ -172,7 +172,7 @@ export class OptionsContextManager extends ContextManagerBase {
 		// const { parameter: actionParameter } = acton || {}
 		if (!actionParameter) return;
 
-		const { required, defaultValue, valueFormatLimitation, type } = actionParameter;
+		const { required, defaultValue, valueFormatLimitation } = actionParameter;
 
 		if (!argument && required && !defaultValue) {
 			this._processedInput = {
@@ -185,7 +185,7 @@ export class OptionsContextManager extends ContextManagerBase {
 			return;
 		}
 
-		if (argument && !valueFormatLimitation?.test(argument)) {
+		if (argument && valueFormatLimitation && !valueFormatLimitation?.test(argument)) {
 			this._processedInput = {
 				...this.generateErrorMessage(
 					`${this._translate('ERRORS.InvalidFormat', {
@@ -199,16 +199,12 @@ export class OptionsContextManager extends ContextManagerBase {
 			return;
 		}
 
-		if (type === 'set') {
-			// TODO
-		} else {
-			const value = argument || defaultValue;
-			this._processedInput = {
-				...this._processedInput,
-				pendingActions,
-				parameter: this.prepareParameterStructure(value, actionParameter),
-			};
-		}
+		const value = argument || defaultValue;
+		this._processedInput = {
+			...this._processedInput,
+			pendingActions,
+			parameter: this.prepareParameterStructure(value, actionParameter),
+		};
 	}
 
 	private requireParameterSpecialCases(action?: ICommandAction): boolean {

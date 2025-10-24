@@ -34,8 +34,8 @@ export const OverlayModal = (props: PopUpProps) => {
 		if (parameterType === 'set') {
 			let index = parseInt(inputValue.trim());
 			if (!isNaN(index) && possibleValues) {
-				index = Math.max(0, Math.min(index, possibleValues.length - 1));
-				value = possibleValues[index];
+				index = Math.max(1, Math.min(index, possibleValues.length));
+				value = possibleValues[index - 1];
 			}
 		}
 
@@ -61,15 +61,15 @@ export const OverlayModal = (props: PopUpProps) => {
 		(value: string): boolean => {
 			if (parameterType === 'set' && possibleValues && possibleValues.length > 0) {
 				const index = parseInt(inputValue.trim());
-				if (!isNaN(index) && (index < 0 || index >= possibleValues.length)) {
-					return false;
+				if (!isNaN(index)) {
+					return index > 0 && index <= possibleValues.length;
 				}
 
 				const filteredValues = possibleValues.filter((cmd) => value && cmd.startsWith(value));
 				return (value !== '' && filteredValues.length > 0) || (value === '' && !!defaultValue);
 			}
 
-			if (value !== '' && valueFormatLimitation) {
+			if (parameterType !== 'set' && value !== '' && valueFormatLimitation) {
 				const regex = new RegExp(valueFormatLimitation);
 				if (!regex.test(value.trim())) {
 					return false;
@@ -95,10 +95,8 @@ export const OverlayModal = (props: PopUpProps) => {
 			case 'set':
 				descriptionText =
 					possibleValues && possibleValues.length > 0
-						? possibleValues.map((value, index) => `${index} - ${value}`).join('\n')
+						? possibleValues.map((value, index) => `${index + 1} - ${value}`).join('\n')
 						: `${description || ''} ${hint || ''}`;
-				break;
-			case 'object':
 				break;
 			default:
 				descriptionText = `${description || ''} ${hint || ''}`;
@@ -142,7 +140,6 @@ export const OverlayModal = (props: PopUpProps) => {
 				<div className="help-space">{generateDescription()}</div>
 				<input
 					className={b('content', 'input', { invalid: !isValid })}
-					// className={isValid ? '' : 'invalid'}
 					type="text"
 					placeholder="Enter commands argument"
 					onChange={onChange}
@@ -151,7 +148,6 @@ export const OverlayModal = (props: PopUpProps) => {
 				<div className={b('content', 'buttons')}>
 					<button
 						className={b('content', 'buttons', 'confirm', { disable: !isValid })}
-						// className={`confirm-btn${isValid ? '' : ' invalid'}`}
 						onClick={onConfirmClick}
 					>
 						Confirm
