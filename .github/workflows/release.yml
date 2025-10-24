@@ -8,6 +8,9 @@ on:
             required: true
             type: string
 
+permissions:
+  contents: write
+
 jobs:
    validate-and-build:
       name: Run pre-release checks
@@ -36,12 +39,12 @@ jobs:
               VERSION="v${{ github.event.inputs.version }}"
 
               echo "Checking if tag $VERSION exists..."
-              git fetch --tags
+              git fetch origin --tags --force --prune
 
               if git rev-parse "$VERSION" >/dev/null 2>&1; then
                 echo "✅ Tag $VERSION already exists. Skipping tag creation."
                else
-                  echo "🏷️ Releasing version v$VERSION"
+                  echo "🏷️ Releasing version $VERSION"
 
                   git config user.name "${{ github.actor }}"
                   git config user.email "${{ github.actor }}@users.noreply.github.com"
