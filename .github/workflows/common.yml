@@ -68,6 +68,7 @@ jobs:
            run: npm run compile:lib
 
          - name: Package build as ZIP
+           if: ${{ inputs.build-artifact == true }}
            run: |
                # Ensure build output exists
                if [ ! -d "dist" ]; then
