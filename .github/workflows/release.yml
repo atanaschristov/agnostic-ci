@@ -32,7 +32,7 @@ jobs:
          - name: Create git tag
            id: tag
            run: |
-              TAG = ${{ github.event.inputs.version }}
+              TAG="${{ github.event.inputs.version }}"
               VERSION="v${{ github.event.inputs.version }}"
 
               echo "Checking if tag $VERSION exists..."
