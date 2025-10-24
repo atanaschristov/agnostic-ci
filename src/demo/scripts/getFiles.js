@@ -22,6 +22,4 @@ const getFiles = (directory) => {
 	});
 };
 
-// console.log(getFiles(initialDirectory)); // TODO trace
-
 fs.writeFileSync('./assets/fileList.json', JSON.stringify(getFiles(initialDirectory), null, 2));

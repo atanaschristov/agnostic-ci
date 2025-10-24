@@ -1,0 +1,83 @@
+name: Manual Release
+
+on:
+   workflow_dispatch:
+      inputs:
+         version:
+            description: 'Version number for this release (e.g. 1.2.3)'
+            required: true
+            type: string
+         branch:
+            description: 'Branch to release from'
+            required: false
+            default: 'main'
+            type: string
+
+jobs:
+   validate-and-build:
+      name: Run pre-release checks
+      uses: ./.github/workflows/common.yml
+      with:
+         build-artifact: true
+         branch: ${{ github.event.inputs.branch }} # 👈 passed down explicitly
+         version: ${{ github.event.inputs.version }}
+
+   release:
+      name: Create Manual Release
+      needs: validate-and-build # ✅ ensures it runs AFTER artifacts are ready
+      runs-on: ubuntu-latest
+
+      steps:
+         # 1️⃣ Checkout the repo
+         - name: Checkout repository
+           uses: actions/checkout@v4
+           with:
+              ref: ${{ github.event.inputs.branch }}
+
+         # 4️⃣ Create a Git tag based on input version
+         - name: Create git tag
+           id: tag
+           run: |
+              VERSION="v${{ github.event.inputs.version }}"
+
+              echo "Checking if tag $VERSION exists..."
+              git fetch --tags
+
+              if git rev-parse "$VERSION" >/dev/null 2>&1; then
+                echo "✅ Tag $VERSION already exists. Skipping tag creation."
+               else
+                  echo "🏷️ Releasing version v$VERSION"
+
+                  git config user.name "${{ github.actor }}"
+                  git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+                  # This handles package.json + commit + tag
+                  npm version $VERSION -m "auto commit: release v%s"
+
+                  # Push commit + tag
+                  git push origin main --follow-tags
+               fi
+
+         - name: Download build artifact
+           uses: actions/download-artifact@v4
+           with:
+              name: build-${{ github.event.inputs.branch }}-${{ github.event.inputs.version }}
+              path: dist
+
+         # 5️⃣ Create a GitHub Release
+         - name: Create GitHub Release
+           uses: softprops/action-gh-release@v2
+           with:
+              tag_name: v${{ github.event.inputs.version }}
+              name: Release v${{ github.event.inputs.version }}
+              generate_release_notes: true
+              files: dist/**
+           env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+         # 6️⃣ (Optional) Upload build artifacts
+         - name: Upload build artifacts
+           uses: actions/upload-artifact@v4
+           with:
+              name: build-v${{ github.event.inputs.version }}
+              path: dist
