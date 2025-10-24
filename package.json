@@ -1,7 +1,7 @@
 {
 	"name": "agnostic-ci",
 	"description": "Agnostic-CI(ACI) is a library for building and processing command interfaces",
-	"version": "0.0.1",
+	"version": "0.0.1-test",
 	"repository": "TODO",
 	"author": "dev <xfoocom@gmail.com>",
 	"license": "MIT",
