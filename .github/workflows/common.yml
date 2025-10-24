@@ -67,19 +67,21 @@ jobs:
            if: ${{ inputs.build-artifact == true }}
            run: npm run compile:lib
 
+         - name: Package build as ZIP
+           run: |
+               # Ensure build output exists
+               if [ ! -d "dist" ]; then
+                  echo "❌ Error: 'dist' directory not found. Run your build step first."
+                  exit 1
+               fi
+               mkdir -p artifacts
+               zip -r artifacts/build-${{ github.event.inputs.version }}-${{ github.sha }}.zip dist
+
          # 📦 Upload artifact if build-artifact flag is set
          - name: Upload the library as an artifact
            if: ${{ inputs.build-artifact == true }}
            uses: actions/upload-artifact@v4
            with:
-              name: build-${{ github.ref_name }}-${{ github.event.inputs.version }}
-              path: dist/
+              name: build-${{ github.event.inputs.version }}-${{ github.sha }}
+              path: artifacts/build-${{ github.event.inputs.version }}-${{ github.sha }}.zip
               if-no-files-found: ignore
-
-         # 👀 For testing purposes
-         - name: Show build folder contents
-           if: ${{ inputs.build-artifact == true }}
-           run: |
-              echo "📁 Listing files in $(pwd)"
-              ls -R dist || true
-              ls -R src/demo/web/dist || true
