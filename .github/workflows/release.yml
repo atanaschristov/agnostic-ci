@@ -59,11 +59,11 @@ jobs:
               name: build-${{ github.ref_name }}-${{ github.event.inputs.version }}
               path: dist
 
-         - name: Download build artifact
-           uses: actions/download-artifact@v4
-           with:
-              name: demo-${{ github.ref_name }}-${{ github.event.inputs.version }}
-              path: dist
+         #- name: Download build artifact
+         #  uses: actions/download-artifact@v4
+         #  with:
+         #     name: demo-${{ github.ref_name }}-${{ github.event.inputs.version }}
+         #     path: dist
 
          # 5️⃣ Create a GitHub Release
          - name: Create GitHub Release
