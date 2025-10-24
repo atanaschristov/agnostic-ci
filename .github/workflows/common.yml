@@ -12,10 +12,6 @@ on:
             description: 'Version number for this release (e.g. 1.2.3)'
             required: false
             type: string
-         branch:
-            description: 'Version number for this release (e.g. 1.2.3)'
-            required: false
-            type: string
          build-artifact:
             description: 'Whether to build and upload artifacts'
             required: false
@@ -31,7 +27,7 @@ jobs:
          - name: Checkout
            uses: actions/checkout@v4
            with:
-              ref: ${{ inputs.branch || github.ref_name }}
+              ref: ${{ github.ref_name }}
 
          # Setup Node.js (optional, for Vite/Node projects)
          - name: Use Node.js ${{ inputs.node-version }}
@@ -62,7 +58,7 @@ jobs:
            if: ${{ inputs.build-artifact == true }}
            uses: actions/upload-artifact@v4
            with:
-              name: demo-${{ github.event.inputs.branch }}-${{ github.event.inputs.version }}
+              name: demo-${{ github.ref_name }}-${{ github.event.inputs.version }}
               path: src/demo/web/dist/
               if-no-files-found: ignore
 
@@ -76,7 +72,7 @@ jobs:
            if: ${{ inputs.build-artifact == true }}
            uses: actions/upload-artifact@v4
            with:
-              name: build-${{ github.event.inputs.branch }}-${{ github.event.inputs.version }}
+              name: build-${{ github.ref_name }}-${{ github.event.inputs.version }}
               path: dist/
               if-no-files-found: ignore
 

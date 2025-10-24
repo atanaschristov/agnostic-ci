@@ -7,11 +7,6 @@ on:
             description: 'Version number for this release (e.g. 1.2.3)'
             required: true
             type: string
-         branch:
-            description: 'Branch to release from'
-            required: false
-            default: 'main'
-            type: string
 
 jobs:
    validate-and-build:
@@ -19,7 +14,6 @@ jobs:
       uses: ./.github/workflows/common.yml
       with:
          build-artifact: true
-         branch: ${{ github.event.inputs.branch }} # 👈 passed down explicitly
          version: ${{ github.event.inputs.version }}
 
    release:
@@ -32,7 +26,7 @@ jobs:
          - name: Checkout repository
            uses: actions/checkout@v4
            with:
-              ref: ${{ github.event.inputs.branch }}
+              ref: ${{ github.ref_name }}
 
          # 4️⃣ Create a Git tag based on input version
          - name: Create git tag
@@ -56,19 +50,19 @@ jobs:
                   npm version $TAG -m "auto commit: release v%s"
 
                   # Push commit + tag
-                  git push origin ${{ github.event.inputs.branch }} --follow-tags
+                  git push origin ${{ github.ref_name }} --follow-tags
                fi
 
          - name: Download build artifact
            uses: actions/download-artifact@v4
            with:
-              name: build-${{ github.event.inputs.branch }}-${{ github.event.inputs.version }}
+              name: build-${{ github.ref_name }}-${{ github.event.inputs.version }}
               path: dist
 
          - name: Download build artifact
            uses: actions/download-artifact@v4
            with:
-              name: demo-${{ github.event.inputs.branch }}-${{ github.event.inputs.version }}
+              name: demo-${{ github.ref_name }}-${{ github.event.inputs.version }}
               path: dist
 
          # 5️⃣ Create a GitHub Release
