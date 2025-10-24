@@ -59,8 +59,8 @@ jobs:
          - name: Download build artifact
            uses: actions/download-artifact@v4
            with:
-              name: build-${{ github.ref_name }}-${{ github.event.inputs.version }}
-              path: dist
+              name: build-${{ github.event.inputs.version }}-${{ github.sha }}
+              path: artifacts/build-${{ github.event.inputs.version }}-${{ github.sha }}.zip
 
          #- name: Download build artifact
          #  uses: actions/download-artifact@v4
@@ -75,6 +75,6 @@ jobs:
               tag_name: v${{ github.event.inputs.version }}
               name: Release v${{ github.event.inputs.version }}
               generate_release_notes: true
-              files: dist/**
+              files: artifacts/build-${{ github.event.inputs.version }}-${{ github.sha }}.zip
            env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
