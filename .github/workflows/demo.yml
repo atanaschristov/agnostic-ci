@@ -55,5 +55,5 @@ jobs:
            uses: actions/upload-artifact@v4
            with:
               name: demo-${{ github.event.inputs.version }}-${{ github.sha }}
-              path: /src/demo/web/dist/demo-${{ github.event.inputs.version }}-${{ github.sha }}.zip
+              path: src/demo/web/dist/demo-${{ github.event.inputs.version }}-${{ github.sha }}.zip
               if-no-files-found: ignore
