@@ -31,27 +31,25 @@ jobs:
               node-version: ${{ inputs.node-version }}
               cache: npm
 
-         # GOTO Demo
-         - name: Go To Demo folder
-           run: cd src/demo/web
-
          # Install dependencies
          - name: Install dependencies
-           run: npm ci
+           run: |
+              cd src/demo/web
+              npm ci
 
          # 🏗️ Build step if build-artifact flag is set
          - name: Build the demo projects
-           run: npm run build
+           run: npm run build:web
 
          - name: Package build as ZIP
            run: |
               # Ensure build output exists
-              if [ ! -d "dist" ]; then
+              if [ ! -d "src/demo/web/dist" ]; then
                  echo "❌ Error: 'dist' directory not found. Run your build step first."
                  exit 1
               fi
               mkdir -p artifacts
-              zip -r artifacts/demo-${{ github.event.inputs.version }}-${{ github.sha }}.zip dist
+              zip -r artifacts/demo-${{ github.event.inputs.version }}-${{ github.sha }}.zip src/demo/web/dist
 
          # 📦 Upload artifact if build-artifact flag is set
          - name: Upload the demo as an artifact
