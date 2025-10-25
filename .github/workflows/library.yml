@@ -19,7 +19,7 @@ on:
             type: boolean
 
 jobs:
-   lint-and-test:
+   library-ci:
       runs-on: ubuntu-latest
 
       steps:
