@@ -14,11 +14,10 @@ on:
             type: string
 
 jobs:
-   lint-and-test:
+   demo-ci:
       runs-on: ubuntu-latest
 
       steps:
-         # Checkout the repo
          - name: Checkout
            uses: actions/checkout@v4
            with:
@@ -31,17 +30,18 @@ jobs:
               node-version: ${{ inputs.node-version }}
               cache: npm
 
-         # Install dependencies
-         - name: Install dependencies
+         - name: Installs library dependencies
+           run: npm ci
+
+         - name: Installs demo dependencies
            run: |
               cd src/demo/web
               npm ci
 
-         # 🏗️ Build step if build-artifact flag is set
-         - name: Build the demo projects
+         - name: Builds the demo projects
            run: npm run build:web
 
-         - name: Package build as ZIP
+         - name: Packages the demo into ZIP
            run: |
               # Ensure build output exists
               if [ ! -d "src/demo/web/dist" ]; then
@@ -51,8 +51,7 @@ jobs:
               mkdir -p artifacts
               zip -r artifacts/demo-${{ github.event.inputs.version }}-${{ github.sha }}.zip src/demo/web/dist
 
-         # 📦 Upload artifact if build-artifact flag is set
-         - name: Upload the demo as an artifact
+         - name: Uploads the demo as an artifact
            uses: actions/upload-artifact@v4
            with:
               name: demo-${{ github.event.inputs.version }}-${{ github.sha }}
