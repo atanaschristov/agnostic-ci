@@ -48,12 +48,12 @@ jobs:
                  echo "❌ Error: 'dist' directory not found. Run your build step first."
                  exit 1
               fi
-              mkdir -p artifacts
-              zip -r artifacts/demo-${{ github.event.inputs.version }}-${{ github.sha }}.zip src/demo/web/dist
+              cd src/demo/web/dist
+              zip -r demo-${{ github.event.inputs.version }}-${{ github.sha }}.zip ./
 
          - name: Uploads the demo as an artifact
            uses: actions/upload-artifact@v4
            with:
               name: demo-${{ github.event.inputs.version }}-${{ github.sha }}
-              path: artifacts/demo-${{ github.event.inputs.version }}-${{ github.sha }}.zip
+              path: /src/demo/web/dist/demo-${{ github.event.inputs.version }}-${{ github.sha }}.zip
               if-no-files-found: ignore

@@ -61,8 +61,8 @@ jobs:
                  echo "❌ Error: 'dist' directory not found. Run your build step first."
                  exit 1
               fi
-              mkdir -p artifacts
-              zip -r artifacts/build-${{ github.event.inputs.version }}-${{ github.sha }}.zip dist
+              cd dist
+              zip -r build-${{ github.event.inputs.version }}-${{ github.sha }}.zip lib
 
          # 📦 Upload artifact if build-artifact flag is set
          - name: Upload the library as an artifact
@@ -70,5 +70,5 @@ jobs:
            uses: actions/upload-artifact@v4
            with:
               name: build-${{ github.event.inputs.version }}-${{ github.sha }}
-              path: artifacts/build-${{ github.event.inputs.version }}-${{ github.sha }}.zip
+              path: dist/build-${{ github.event.inputs.version }}-${{ github.sha }}.zip
               if-no-files-found: ignore

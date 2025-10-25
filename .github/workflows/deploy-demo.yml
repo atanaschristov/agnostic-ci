@@ -1,0 +1,39 @@
+name: Deploys Demo
+
+on:
+   workflow_dispatch:
+      inputs:
+         version:
+            description: 'Version number for this release (e.g. 1.2.3)'
+            required: true
+            type: string
+
+jobs:
+   demo-deploy:
+      runs-on: ubuntu-latest
+      permissions:
+         contents: read
+
+      steps:
+         - name: Checkout repository
+           uses: actions/checkout@v4
+
+         - name: Download demo artifact (auto-match)
+           uses: ./.github/actions/download-release
+           id: download
+           with:
+              version: ${{ github.event.inputs.version }}
+           env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+         - name: Prepare demo directory
+           run: rm -rf demo && mkdir demo
+
+         - name: Extract demo
+           run: unzip -o ${{ steps.download.outputs.file }} -d demo
+
+         - name: Deploy demo version v${{ github.event.inputs.version }}
+           uses: peaceiris/actions-gh-pages@v3
+           with:
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              publish_dir: demo
