@@ -1,0 +1,62 @@
+name: 'Demo Web CI'
+
+on:
+   workflow_call:
+      inputs:
+         node-version:
+            description: 'Node.js version to use'
+            default: '24'
+            required: false
+            type: string
+         version:
+            description: 'Version number for this release (e.g. 1.2.3)'
+            required: false
+            type: string
+
+jobs:
+   lint-and-test:
+      runs-on: ubuntu-latest
+
+      steps:
+         # Checkout the repo
+         - name: Checkout
+           uses: actions/checkout@v4
+           with:
+              ref: ${{ github.ref_name }}
+
+         # Setup Node.js (optional, for Vite/Node projects)
+         - name: Use Node.js ${{ inputs.node-version }}
+           uses: actions/setup-node@v4
+           with:
+              node-version: ${{ inputs.node-version }}
+              cache: npm
+
+         # GOTO Demo
+         - name: Go To Demo folder
+           run: cd src/demo/web
+
+         # Install dependencies
+         - name: Install dependencies
+           run: npm ci
+
+         # 🏗️ Build step if build-artifact flag is set
+         - name: Build the demo projects
+           run: npm run build
+
+         - name: Package build as ZIP
+           run: |
+              # Ensure build output exists
+              if [ ! -d "dist" ]; then
+                 echo "❌ Error: 'dist' directory not found. Run your build step first."
+                 exit 1
+              fi
+              mkdir -p artifacts
+              zip -r artifacts/demo-${{ github.event.inputs.version }}-${{ github.sha }}.zip dist
+
+         # 📦 Upload artifact if build-artifact flag is set
+         - name: Upload the demo as an artifact
+           uses: actions/upload-artifact@v4
+           with:
+              name: demo-${{ github.event.inputs.version }}-${{ github.sha }}
+              path: artifacts/demo-${{ github.event.inputs.version }}-${{ github.sha }}.zip
+              if-no-files-found: ignore

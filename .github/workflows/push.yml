@@ -6,4 +6,4 @@ on:
 
 jobs:
    call-common-ci:
-      uses: ./.github/workflows/common.yml
+      uses: ./.github/workflows/library.yml

@@ -1,4 +1,4 @@
-name: 'CI (validation)'
+name: 'Library CI'
 
 on:
    workflow_call:
@@ -49,20 +49,6 @@ jobs:
            run: npm run test:coverage -- --ci --reporters=default
 
          # 🏗️ Build step if build-artifact flag is set
-         # - name: Build the demo projects
-         #  if: ${{ inputs.build-artifact == true }}
-         #  run: npm run build:web
-
-         # 📦 Upload artifact if build-artifact flag is set
-         #- name: Upload the demo as an artifact
-         #  if: ${{ inputs.build-artifact == true }}
-         #  uses: actions/upload-artifact@v4
-         #  with:
-         #     name: demo-${{ github.ref_name }}-${{ github.event.inputs.version }}
-         #     path: src/demo/web/dist/
-         #     if-no-files-found: ignore
-
-         # 🏗️ Build step if build-artifact flag is set
          - name: Build the library
            if: ${{ inputs.build-artifact == true }}
            run: npm run compile:lib
@@ -70,13 +56,13 @@ jobs:
          - name: Package build as ZIP
            if: ${{ inputs.build-artifact == true }}
            run: |
-               # Ensure build output exists
-               if [ ! -d "dist" ]; then
-                  echo "❌ Error: 'dist' directory not found. Run your build step first."
-                  exit 1
-               fi
-               mkdir -p artifacts
-               zip -r artifacts/build-${{ github.event.inputs.version }}-${{ github.sha }}.zip dist
+              # Ensure build output exists
+              if [ ! -d "dist" ]; then
+                 echo "❌ Error: 'dist' directory not found. Run your build step first."
+                 exit 1
+              fi
+              mkdir -p artifacts
+              zip -r artifacts/build-${{ github.event.inputs.version }}-${{ github.sha }}.zip dist
 
          # 📦 Upload artifact if build-artifact flag is set
          - name: Upload the library as an artifact

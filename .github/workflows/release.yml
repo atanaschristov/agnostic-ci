@@ -9,19 +9,25 @@ on:
             type: string
 
 permissions:
-  contents: write
+   contents: write
 
 jobs:
-   validate-and-build:
+   run-library-ci:
       name: Run pre-release checks
-      uses: ./.github/workflows/common.yml
+      uses: ./.github/workflows/library.yml
       with:
          build-artifact: true
          version: ${{ github.event.inputs.version }}
 
+   run-demo-ci:
+      name: Run pre-release checks
+      uses: ./.github/workflows/demo.yml
+      with:
+         version: ${{ github.event.inputs.version }}
+
    release:
       name: Create Manual Release
-      needs: validate-and-build # ✅ ensures it runs AFTER artifacts are ready
+      needs: [run-library-ci, run-demo-ci] # ✅ ensures it runs AFTER artifacts are ready
       runs-on: ubuntu-latest
 
       steps:
