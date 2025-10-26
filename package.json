@@ -30,7 +30,7 @@
 		"run:cli:ts": "npx ts-node -P src/demo/cli/tsconfig.demo.json src/demo/cli/index.ts",
 		"run:cli": "npm run demo:cli:lib",
 		"run:web": "cd src/demo/web && npm run dev",
-		"build:web": "cd src/demo/web && npm run build",
+		"build:web": "cd src/demo/web && set NODE_ENV='production' && npm run build",
 		"test": "npm run clean && npx jest --config jest.config.js",
 		"test:watch": "npm run clean && npx jest --config jest.config.js --watch",
 		"test:coverage": "npm run clean && npx jest --config jest.config.js --coverage"

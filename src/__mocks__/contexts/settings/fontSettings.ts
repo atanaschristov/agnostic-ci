@@ -1,6 +1,6 @@
 import { ICommandNode, ICommands, IContextDefinition } from '../../../lib/types';
 
-export const CONTEXT_NAME = 'fonts';
+export const CONTEXT_NAME = 'fonts' as const;
 export const COMMAND_NAMES = {
 	FONT_SIZE: 'fontSize' as const,
 	FONT_STYLE: 'fontStyle' as const,

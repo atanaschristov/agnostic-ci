@@ -5,13 +5,14 @@ import { ContextEntryCommand as DocumentationEntryCommand } from '../docs';
 import { EntryCommand as MultiLevelEntryCommand } from '../multiLevel';
 
 export const CONTEXT_NAMES = {
-	LOBBY: 'lobby',
+	LOBBY: 'lobby' as const,
 };
 
 export const COMMAND_NAMES = {
 	LOBBY_UI_SETTINGS: UISettingsCommand.name,
 	LOBBY_EBOOK: EbookCommand.name,
 	LOBBY_DOCUMENTATION: DocumentationEntryCommand.name,
+	LOBBY_MULTI_LEVEL: MultiLevelEntryCommand.name,
 };
 
 export const LobbyCommand = {

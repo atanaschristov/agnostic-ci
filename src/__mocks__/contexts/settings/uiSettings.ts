@@ -1,7 +1,7 @@
 import { ICommandNode, ICommands, IContextDefinition } from '../../../lib/types';
 import { CONTEXT_NAME as STYLING_CONTEXT_NAME } from './stylingSettings';
 
-export const CONTEXT_NAME = 'uiSettings';
+export const CONTEXT_NAME = 'uiSettings' as const;
 export const COMMAND_NAMES = {
 	UI_SETTINGS_STYLING: STYLING_CONTEXT_NAME,
 	UI_SETTINGS_RESET: 'reset' as const,

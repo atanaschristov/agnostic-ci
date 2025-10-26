@@ -1,7 +1,7 @@
 export const CONTEXT_NAMES = {
-	LEVEL_1: 'level1',
-	LEVEL_2: 'level2',
-	LEVEL_3: 'level3',
-	LEVEL_4: 'level4',
-	LEVEL_5: 'level5',
+	LEVEL_1: 'level1' as const,
+	LEVEL_2: 'level2' as const,
+	LEVEL_3: 'level3' as const,
+	LEVEL_4: 'level4' as const,
+	LEVEL_5: 'level5' as const,
 };

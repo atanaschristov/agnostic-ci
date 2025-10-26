@@ -1,7 +1,7 @@
 import { ICommandAction, ICommandNode, ICommands, IContextDefinition } from '../../../lib/types';
 import { CONTEXT_NAME as FONTS_CONTEXT_NAME } from './fontSettings';
 
-export const CONTEXT_NAME = 'styling';
+export const CONTEXT_NAME = 'styling' as const;
 export const COMMAND_NAMES = {
 	FONTS: FONTS_CONTEXT_NAME,
 	THEME: 'theme' as const,
