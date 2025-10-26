@@ -1,13 +1,15 @@
 import { MESSAGE_CODES } from './constants';
-import { ContextManagerBase, IContextConfiguration } from './ContextManagerBase';
+import { ContextManagerBase } from './ContextManagerBase';
 import { ContextResponse } from './ContextResponse';
-import {
+import type {
 	ICommandAction,
 	ICommandActionParameter,
 	ICommandNode,
 	IContextContainer,
+	ILocaleStrings,
 	IResponse,
 } from './types';
+import type { IContextConfiguration } from './ContextManagerBase';
 
 interface ITreeContextConfiguration extends IContextConfiguration {
 	optionsFormat?: string;
@@ -39,7 +41,7 @@ export class OptionsContextManager extends ContextManagerBase {
 
 	initialize(
 		contextContainer: IContextContainer,
-		locales?: Record<string, any>,
+		locales?: ILocaleStrings,
 		language?: string,
 	): void {
 		this.addImplicitGlobalCommands(contextContainer, {}); // TreeContextManager specific implicit commands
@@ -140,6 +142,7 @@ export class OptionsContextManager extends ContextManagerBase {
 
 		if (commandNode.action) pendingActions?.push({ ...commandNode.action });
 
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { aliases, action, type, ...commandMeta } = commandNode || {};
 		if (commandNode.type === 'context') {
 			processedDepth?.push(commandNode.name);
@@ -169,7 +172,7 @@ export class OptionsContextManager extends ContextManagerBase {
 		// const { parameter: actionParameter } = acton || {}
 		if (!actionParameter) return;
 
-		const { required, defaultValue, valueFormatLimitation, type } = actionParameter;
+		const { required, defaultValue, valueFormatLimitation } = actionParameter;
 
 		if (!argument && required && !defaultValue) {
 			this._processedInput = {
@@ -182,7 +185,7 @@ export class OptionsContextManager extends ContextManagerBase {
 			return;
 		}
 
-		if (argument && !valueFormatLimitation?.test(argument)) {
+		if (argument && valueFormatLimitation && !valueFormatLimitation?.test(argument)) {
 			this._processedInput = {
 				...this.generateErrorMessage(
 					`${this._translate('ERRORS.InvalidFormat', {
@@ -196,15 +199,12 @@ export class OptionsContextManager extends ContextManagerBase {
 			return;
 		}
 
-		if (type === 'set') {
-		} else {
-			const value = argument || defaultValue;
-			this._processedInput = {
-				...this._processedInput,
-				pendingActions,
-				parameter: this.prepareParameterStructure(value, actionParameter),
-			};
-		}
+		const value = argument || defaultValue;
+		this._processedInput = {
+			...this._processedInput,
+			pendingActions,
+			parameter: this.prepareParameterStructure(value, actionParameter),
+		};
 	}
 
 	private requireParameterSpecialCases(action?: ICommandAction): boolean {

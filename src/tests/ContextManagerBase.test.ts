@@ -1,6 +1,7 @@
 import { I18N_EXTERNAL_NS, I18N_FALLBACK_LANGUAGE } from '../lib/constants';
 import { ContextManagerBase } from '../lib/ContextManagerBase';
 import internalLocales from '../lib/strings';
+import { ILocaleStrings, IResponse } from '../lib/types';
 
 describe('CLIContextManagerBase', () => {
 	let contextManager: ContextManagerBase | undefined;
@@ -24,7 +25,7 @@ describe('CLIContextManagerBase', () => {
 		try {
 			contextManager?.['changeContext']('add', nonExistingContext, -1);
 		} catch (response) {
-			const { success, message } = response || {};
+			const { success, message } = response as IResponse;
 			expect(success).toBeFalsy();
 			expect(message).toContain(`Context '${nonExistingContext}' not found.`);
 		}
@@ -33,7 +34,8 @@ describe('CLIContextManagerBase', () => {
 	describe('validates command history', () => {
 		it('should return the command history map via the getter', () => {
 			// Mock currentContext
-			(contextManager as any).__currentContext = { name: 'testContext' };
+			// @ts-expect-error Using the private property for testing purposes
+			contextManager.__currentContext = { name: 'testContext' };
 			contextManager?.['updateCommandHistory']('testCommand');
 
 			const history = contextManager?.commandHistory;
@@ -56,7 +58,7 @@ describe('CLIContextManagerBase', () => {
 					value: undefined,
 				});
 			} catch (response) {
-				const { success, message } = response;
+				const { success, message } = response as IResponse;
 
 				expect(success).toBeFalsy();
 				expect(message).toContain('Unresolved requirement: Language code is required.');
@@ -71,7 +73,7 @@ describe('CLIContextManagerBase', () => {
 					value: undefined,
 				});
 			} catch (response) {
-				const { success, message } = response;
+				const { success, message } = response as IResponse;
 
 				expect(success).toBeFalsy();
 				expect(message).toContain('Unresolved requirement: Language code is required.');
@@ -94,7 +96,7 @@ describe('CLIContextManagerBase', () => {
 					value: UNAVAILABLE_LANGUAGE,
 				});
 			} catch (response) {
-				const { success, message } = response;
+				const { success, message } = response as IResponse;
 
 				expect(success).toBeFalsy();
 				expect(message).toContain(
@@ -120,7 +122,7 @@ describe('CLIContextManagerBase', () => {
 					value: INVALID_LANGUAGE,
 				});
 			} catch (response) {
-				const { success, message } = response;
+				const { success, message } = response as IResponse;
 
 				expect(success).toBeFalsy();
 				expect(message).toContain(
@@ -146,7 +148,7 @@ describe('CLIContextManagerBase', () => {
 					value: LANGUAGE,
 				});
 			} catch (response) {
-				const { success } = response;
+				const { success } = response as IResponse;
 
 				expect(success).toBeTruthy();
 				expect(contextManager?.getConfiguration().language).toBe(LANGUAGE);
@@ -156,19 +158,30 @@ describe('CLIContextManagerBase', () => {
 		it('should return the updated configuration after initialize', async () => {
 			const customLang1 = 'en';
 			const customLang2 = 'hu';
-			const customLocales = { en: {}, hu: {} };
-			customLocales.en[I18N_EXTERNAL_NS] = { test: 'Test' };
-			customLocales.hu[I18N_EXTERNAL_NS] = { test: 'Bla' };
+			const customLocales: ILocaleStrings = {
+				en: {},
+				hu: {},
+			};
+			(customLocales.en as ILocaleStrings)[I18N_EXTERNAL_NS] = { test: 'Test' };
+			(customLocales.hu as ILocaleStrings)[I18N_EXTERNAL_NS] = { test: 'Bla' };
 
 			contextManager?.initialize({}, customLocales, customLang2);
 			const configuration = contextManager?.getConfiguration();
 
 			expect(configuration?.language).toBe(customLang2);
-			expect(configuration?.localeResources?.[customLang1]?.[I18N_EXTERNAL_NS]).toEqual(
-				expect.objectContaining(customLocales?.[customLang1]?.[I18N_EXTERNAL_NS]),
+			expect(
+				(configuration?.localeResources?.[customLang1] as ILocaleStrings)?.[I18N_EXTERNAL_NS],
+			).toEqual(
+				expect.objectContaining(
+					(customLocales?.[customLang1] as ILocaleStrings)?.[I18N_EXTERNAL_NS],
+				),
 			);
-			expect(configuration?.localeResources?.[customLang2]?.[I18N_EXTERNAL_NS]).toEqual(
-				expect.objectContaining(customLocales?.[customLang2]?.[I18N_EXTERNAL_NS]),
+			expect(
+				(configuration?.localeResources?.[customLang2] as ILocaleStrings)?.[I18N_EXTERNAL_NS],
+			).toEqual(
+				expect.objectContaining(
+					(customLocales?.[customLang2] as ILocaleStrings)?.[I18N_EXTERNAL_NS],
+				),
 			);
 		});
 
@@ -199,9 +212,13 @@ describe('CLIContextManagerBase', () => {
 			const configuration = contextManager?.getConfiguration();
 			expect(configuration).toBeDefined();
 
-			expect(configuration?.localeResources?.['de']?.['anotherNS']?.test).toBe(
-				customLocales.de.anotherNS.test,
-			);
+			expect(
+				(
+					(configuration?.localeResources?.['de'] as ILocaleStrings)?.[
+						'anotherNS'
+					] as ILocaleStrings
+				)?.test,
+			).toBe(customLocales.de.anotherNS.test);
 		});
 
 		it("should add the translations for the new namespace for a language if the namespace doesn't exists when using addLocales", async () => {
@@ -216,9 +233,13 @@ describe('CLIContextManagerBase', () => {
 			const configuration = contextManager?.getConfiguration();
 			expect(configuration).toBeDefined();
 
-			expect(configuration?.localeResources?.['de']?.['anotherNS']?.test).toBe(
-				customLocales.de.anotherNS.test,
-			);
+			expect(
+				(
+					(configuration?.localeResources?.['de'] as ILocaleStrings)?.[
+						'anotherNS'
+					] as ILocaleStrings
+				)?.test,
+			).toBe(customLocales.de.anotherNS.test);
 
 			expect(contextManager?.['_translate']('test', { lng: 'de', ns: 'anotherNewNS' })).toBe(
 				newLocales.de.anotherNewNS.test,
@@ -245,25 +266,24 @@ describe('CLIContextManagerBase', () => {
 
 		beforeEach(() => {
 			contextManager = new ContextManagerBase();
-			(contextManager as any).__contextDepth = ['root', 'settings', 'profile'];
+			// @ts-expect-error Using the private property for testing purposes
+			contextManager.__contextDepth = ['root', 'settings', 'profile'];
 		});
 
 		it('removes existing context from depth and re-adds it at the end', () => {
 			const newContext = { name: 'settings' };
-			// @ts-ignore
-			contextManager.updateContextDepth(newContext);
-			// @ts-ignore
-			expect(contextManager.__contextDepth).toEqual(['root', 'profile', 'settings']);
+			expect(contextManager['__contextDepth']).toEqual(['root', 'settings', 'profile']);
+
+			// @ts-expect-error Passing an incomplete context for testing purposes
+			contextManager['updateContextDepth'](newContext);
+			expect(contextManager['__contextDepth']).toEqual(['root', 'profile', 'settings']);
 		});
 
 		it('adds context if not already present', () => {
 			const newContext = { name: 'newContext' };
-			// @ts-ignore
+			// @ts-expect-error Passing an incomplete context for testing purposes
 			contextManager.updateContextDepth(newContext);
-
-			// 'newContext' should be added at the end
-			// @ts-ignore
-			expect(contextManager.__contextDepth).toEqual([
+			expect(contextManager['__contextDepth']).toEqual([
 				'root',
 				'settings',
 				'profile',

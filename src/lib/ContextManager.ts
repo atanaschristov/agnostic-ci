@@ -15,9 +15,9 @@ export class ContextManager {
 	private __managerInstance?: OptionsContextManager | CLIContextManager | ContextManagerBase = //NOSONAR
 		undefined;
 	private __managerType: ManagerType = DEFAULT_CONTEXT_MANAGER; //NOSONAR
-	private __translate: any = undefined;
+	private __translate?: i18next.TFunction<['translation', ...string[]], undefined> = undefined;
 
-	// TODO: instatntiate the translation here and pass it to the different instances, Instead of in the base class
+	// TODO: instantiate the translation here and pass it to the different instances, Instead of in the base class
 
 	get managerType(): ManagerType {
 		return this.__managerType;
@@ -68,7 +68,7 @@ export class ContextManager {
 			case 'cli':
 				return new CLIContextManager();
 			default:
-				throw new Error(this.__translate('ERRORS.UnsupportedManagerType', { managerType }));
+				throw new Error(this.__translate?.('ERRORS.UnsupportedManagerType', { managerType }));
 		}
 	}
 }

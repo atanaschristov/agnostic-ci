@@ -1,15 +1,21 @@
+import { Terminal } from 'terminal-kit';
 import type { CLIContextManager } from '../../lib/CLIContextManager';
-import { IContextContainer } from '../../lib/types';
+import { IContextContainer, ILocaleStrings, IResponse } from '../../lib/types';
 
 export default class CLIApp {
-	private terminal: any;
+	private terminal: Terminal;
 	private contextManager: CLIContextManager;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private inputFieldInstance: any = null;
 	private commandHistory: string[] | undefined = [];
 	private commandHistoryIndex: number = -1;
 
-	constructor(terminal: any, contextManager: CLIContextManager, Mocks: any) {
-		const CommandSchema = Mocks.default as IContextContainer;
+	constructor(
+		terminal: Terminal,
+		contextManager: CLIContextManager,
+		Mocks: { default: IContextContainer; COMMAND_STRINGS?: ILocaleStrings },
+	) {
+		const CommandSchema = Mocks.default;
 		const CommandStrings = Mocks.COMMAND_STRINGS;
 
 		this.terminal = terminal;
@@ -30,7 +36,7 @@ export default class CLIApp {
 
 		this.inputFieldInstance = this.terminal.inputField(
 			{ cancelable: true, default: inputValue },
-			(error: any, input: string) => {
+			(error: unknown, input?: string) => {
 				this.contextManager.send(input);
 				const { response } = this.contextManager;
 
@@ -48,7 +54,7 @@ export default class CLIApp {
 	}
 
 	private promptLoop(
-		response: any = undefined,
+		response: IResponse | undefined = undefined,
 		inputValue = '',
 		hint: string | undefined = undefined,
 	) {
@@ -63,11 +69,12 @@ export default class CLIApp {
 				this.terminal.grabInput(false);
 				this.terminal('\nGoodbye!\n');
 				process.exit(0);
+			// fall through: Comment needed by the linter. No need for break. Just exits the app
 			case 'TAB': {
 				const currentInput = this.inputFieldInstance?.getInput() || '';
 				this.contextManager.autocomplete(currentInput);
 				const { response } = this.contextManager;
-				const { autoCompleteOutput, info } = response;
+				const { autoCompleteOutput, info } = response || {};
 				const { command, parameter } = info || {};
 				const parameterHint = parameter?.hint;
 				const commandHint = command?.hint;
@@ -102,10 +109,6 @@ export default class CLIApp {
 				}
 				break;
 			}
-			// case '?': {
-			// 	console.log('TODO: Help requested');
-			// 	break;
-			// }
 		}
 	}
 }

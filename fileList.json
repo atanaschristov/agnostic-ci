@@ -1,0 +1,117 @@
+[
+  {
+    "name": ".DS_Store",
+    "size": 6148,
+    "modified": "2025-09-30T11:05:52.187Z"
+  },
+  {
+    "name": ".git",
+    "size": 384,
+    "modified": "2025-09-22T21:31:22.703Z"
+  },
+  {
+    "name": ".github",
+    "size": 96,
+    "modified": "2025-09-22T10:48:15.464Z"
+  },
+  {
+    "name": ".gitignore",
+    "size": 53,
+    "modified": "2025-09-22T20:42:38.939Z"
+  },
+  {
+    "name": ".prettierrc",
+    "size": 119,
+    "modified": "2025-08-25T12:47:55.039Z"
+  },
+  {
+    "name": ".vscode",
+    "size": 128,
+    "modified": "2025-06-28T15:12:14.412Z"
+  },
+  {
+    "name": "NOTES.md",
+    "size": 938,
+    "modified": "2025-06-23T09:59:12.140Z"
+  },
+  {
+    "name": "README.md",
+    "size": 384,
+    "modified": "2025-09-22T10:28:48.422Z"
+  },
+  {
+    "name": "coverage",
+    "size": 192,
+    "modified": "2025-09-22T21:01:03.610Z"
+  },
+  {
+    "name": "docs",
+    "size": 96,
+    "modified": "2025-08-28T12:58:08.490Z"
+  },
+  {
+    "name": "eslint.config.mts",
+    "size": 1696,
+    "modified": "2025-09-22T20:44:37.733Z"
+  },
+  {
+    "name": "jest.config.js",
+    "size": 220,
+    "modified": "2025-08-06T09:36:28.495Z"
+  },
+  {
+    "name": "lib_diagram.png",
+    "size": 4329704,
+    "modified": "2025-09-04T14:22:17.198Z"
+  },
+  {
+    "name": "node_modules",
+    "size": 14880,
+    "modified": "2025-09-22T20:52:50.958Z"
+  },
+  {
+    "name": "nodemon.democli.ts.json",
+    "size": 203,
+    "modified": "2025-07-07T17:28:41.729Z"
+  },
+  {
+    "name": "nodemon.json",
+    "size": 123,
+    "modified": "2025-07-07T17:46:03.055Z"
+  },
+  {
+    "name": "package-lock.json",
+    "size": 285741,
+    "modified": "2025-09-22T20:54:12.803Z"
+  },
+  {
+    "name": "package.json",
+    "size": 2191,
+    "modified": "2025-09-22T20:52:51.836Z"
+  },
+  {
+    "name": "src",
+    "size": 224,
+    "modified": "2025-07-29T11:15:40.738Z"
+  },
+  {
+    "name": "tsconfig.es5.json",
+    "size": 326,
+    "modified": "2025-08-06T08:53:50.011Z"
+  },
+  {
+    "name": "tsconfig.es6.json",
+    "size": 321,
+    "modified": "2025-08-06T08:53:01.355Z"
+  },
+  {
+    "name": "tsconfig.mocks.es5.json",
+    "size": 276,
+    "modified": "2025-08-06T08:53:43.701Z"
+  },
+  {
+    "name": "tsconfig.mocks.es6.json",
+    "size": 271,
+    "modified": "2025-07-08T20:00:16.462Z"
+  }
+]

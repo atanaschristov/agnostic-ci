@@ -1,0 +1,74 @@
+name: 'Library CI'
+
+on:
+   workflow_call:
+      inputs:
+         node-version:
+            description: 'Node.js version to use'
+            default: '24'
+            required: false
+            type: string
+         version:
+            description: 'Version number for this release (e.g. 1.2.3)'
+            required: false
+            type: string
+         build-artifact:
+            description: 'Whether to build and upload artifacts'
+            required: false
+            default: false
+            type: boolean
+
+jobs:
+   library-ci:
+      runs-on: ubuntu-latest
+
+      steps:
+         # Checkout the repo
+         - name: Checkout
+           uses: actions/checkout@v4
+           with:
+              ref: ${{ github.ref_name }}
+
+         # Setup Node.js (optional, for Vite/Node projects)
+         - name: Use Node.js ${{ inputs.node-version }}
+           uses: actions/setup-node@v4
+           with:
+              node-version: ${{ inputs.node-version }}
+              cache: npm
+
+         # Install dependencies
+         - name: Install dependencies
+           run: npm ci
+
+         # Validate the code with the linter
+         - name: Run eslint
+           run: npx eslint .
+
+         # Run all tests
+         - name: Run tests
+           run: npm run test:coverage -- --ci --reporters=default
+
+         # 🏗️ Build step if build-artifact flag is set
+         - name: Build the library
+           if: ${{ inputs.build-artifact == true }}
+           run: npm run compile:lib
+
+         - name: Package build as ZIP
+           if: ${{ inputs.build-artifact == true }}
+           run: |
+              # Ensure build output exists
+              if [ ! -d "dist" ]; then
+                 echo "❌ Error: 'dist' directory not found. Run your build step first."
+                 exit 1
+              fi
+              cd dist
+              zip -r build-${{ github.event.inputs.version }}-${{ github.sha }}.zip lib
+
+         # 📦 Upload artifact if build-artifact flag is set
+         - name: Upload the library as an artifact
+           if: ${{ inputs.build-artifact == true }}
+           uses: actions/upload-artifact@v4
+           with:
+              name: build-${{ github.event.inputs.version }}-${{ github.sha }}
+              path: dist/build-${{ github.event.inputs.version }}-${{ github.sha }}.zip
+              if-no-files-found: ignore

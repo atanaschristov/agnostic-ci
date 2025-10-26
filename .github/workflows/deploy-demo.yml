@@ -1,0 +1,63 @@
+name: Deploys Demo
+
+on:
+   workflow_dispatch:
+      inputs:
+         version:
+            description: 'Version number for this release (e.g. 1.2.3)'
+            required: true
+            type: string
+
+jobs:
+   demo-deploy:
+      runs-on: ubuntu-latest
+      permissions:
+         contents: write
+
+      steps:
+         - name: Checkout repository
+           uses: actions/checkout@v4
+
+         - name: Download demo artifact
+           id: download
+           uses: actions/github-script@v7
+           with:
+              github-token: ${{ secrets.GITHUB_TOKEN }}
+              script: |
+                 const version = `v${{ github.event.inputs.version }}`;
+                 const { data: release } = await github.rest.repos.getReleaseByTag({
+                     owner: context.repo.owner,
+                     repo: context.repo.repo,
+                     tag: version,
+                 });
+
+                 const asset = release.assets.find(a => a.name.startsWith('demo-') && a.name.endsWith('.zip'));
+                 if (!asset) {
+                     core.setFailed(`No demo asset found for ${version}`);
+                     return;
+                 }
+
+                 const resp = await github.request({
+                     url: asset.url,
+                     headers: { Accept: 'application/octet-stream' },
+                 });
+
+                 const fs = require('fs');
+
+                 fs.writeFileSync(asset.name, Buffer.from(resp.data));
+                 core.setOutput('file', asset.name);
+
+         - name: Verify downloaded file
+           run: ls -lh ${{ steps.download.outputs.file }}
+
+         - name: Extract demo
+           run: unzip -o ${{ steps.download.outputs.file }} -d demo
+
+         - name: List demo folder
+           run: ls -R demo
+
+         - name: Deploy demo version v${{ github.event.inputs.version }}
+           uses: peaceiris/actions-gh-pages@v3
+           with:
+              github_token: ${{ secrets.GITHUB_TOKEN }}
+              publish_dir: demo

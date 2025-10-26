@@ -2,18 +2,16 @@ import bem from 'bem-cn';
 import DemoCLIContextManager from './components/demoCLI/DemoCLIContextManager.tsx';
 import DemoOptionsContextManager from './components/demoOptions/DemoOptionsContextManager.tsx';
 
-import { useMemo, useState } from 'react';
+import { ACTIONS } from './actions';
+import { ContentScreen, IScreenItem } from './components/ContentScreen.tsx';
+import { useCallback, useMemo, useState } from 'react';
 import { OptionsContextManager } from '../../../lib/OptionsContextManager.ts';
-import { IActionResponse, IContextContainer, IResponse } from '../../../lib/types.ts';
+import { IActionResponse, IResponse } from '../../../lib/types.ts';
 import { CLIContextManager } from '../../../lib/CLIContextManager.ts';
 import { ContextManager } from '../../../lib/ContextManager.ts';
-
-// import ContextSchema from '../../../__mocks__/contexts/index.ts';
-import COMMAND_INTERFACE from './commandInterface';
-import { ACTIONS } from './actions';
+import { useSchema } from './utils.ts';
 
 import './App.scss';
-import { ContentScreen, IScreenItem } from './components/ContentScreen.tsx';
 
 type DemoOptions = 'cli' | 'options';
 
@@ -33,23 +31,13 @@ function App() {
 	};
 
 	const commandActions = useMemo(() => {
-		return { ...COMMAND_INTERFACE.DOC.ACTIONS, ...ACTIONS };
+		return { ...ACTIONS };
 	}, []);
 
-	const contextManagers = useMemo(() => {
-		const prepareSchema = () => {
-			// ContextSchema.lobby.commands = {
-			// 	...ContextSchema.lobby.commands,
-			// 	...COMMAND_INTERFACE.DOC.COMMANDS,
-			// };
-			return {
-				LOCALES: undefined,
-				SCHEMA: { ...COMMAND_INTERFACE.DOC.CONTEXTS } as IContextContainer,
-				// SCHEMA: { ...ContextSchema, ...COMMAND_INTERFACE.DOC.CONTEXTS } as IContextContainer,
-			};
-		};
+	const preparedSchema = useSchema();
 
-		const { LOCALES, SCHEMA } = prepareSchema();
+	const contextManagers = useMemo(() => {
+		const { LOCALES, SCHEMA } = preparedSchema;
 		const cli = new ContextManager('cli').managerInstance;
 		cli?.initialize(structuredClone(SCHEMA), structuredClone(LOCALES));
 
@@ -62,18 +50,17 @@ function App() {
 		};
 	}, []);
 
-	const processResponse = (response?: IResponse) => {
+	const processResponse = useCallback((response?: IResponse) => {
 		if (!response) return;
 
 		const { success, actions, info } = response;
 		let { message } = response;
 
-		console.log('processResponse', info);
 		message = info?.command?.name ? `${message} (${info?.command?.name})` : message;
 
 		if (!actions?.length) setScreenItem({ success, content: message });
 		else actions?.forEach((action) => processAction(success, message, action));
-	};
+	}, []);
 
 	const processAction = async (success: boolean, message: string, action: IActionResponse) => {
 		const { name, parameter } = action || {};

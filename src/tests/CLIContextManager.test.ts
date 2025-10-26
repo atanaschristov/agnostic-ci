@@ -14,17 +14,28 @@ import {
 	PROMPT_SPLITTING_SYMBOL,
 	PROMPT_SUFFIX,
 } from '../lib/constants';
-import { CONTEXT_NAMES } from '../__mocks__/contexts';
-import { ICommands, IContextContainer, IContextDefinition } from '../lib/types';
-import { COMMAND_NAMES } from '../lib/internalCommands/constants';
+import { COMMAND_NAMES, CONTEXT_NAMES, ACTION_NAMES } from '../__mocks__/contexts';
+import { ICommands, IContextContainer, IContextDefinition, ILocaleStrings } from '../lib/types';
+import { COMMAND_NAMES as INTERNAL_COMMAND_NAMES } from '../lib/internalCommands/constants';
 
 describe('CLIContextManager', () => {
-	const { ROOT_CONTEXT, CHARACTER_CONTEXT, BODY_CONTEXT, HEAD_CONTEXT, HAIR_CONTEXT } =
-		CONTEXT_NAMES.ROOT;
-	const { SETTINGS_CONTEXT } = CONTEXT_NAMES.SETTINGS;
+	const {
+		HELP,
+		BACK,
+		CONFIG,
+		PROMPT_FORMAT: PROMPT_FORMAT_COMMAND,
+		PROMPT_PREFIX: PROMPT_PREFIX_COMMAND,
+		PROMPT_SUFFIX: PROMPT_SUFFIX_COMMAND,
+		PROMPT_SPLITTING_SYMBOL: PROMPT_SPLITTING_SYMBOL_COMMAND,
+	} = INTERNAL_COMMAND_NAMES;
+
+	const { LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5 } = CONTEXT_NAMES.MULTI_LEVEL;
+	const { LOBBY: LOBBY_CONTEXT } = CONTEXT_NAMES.LOBBY;
+	const { MULTI_LEVEL: MULTI_LEVEL_ACTION_NAMES } = ACTION_NAMES;
+
 	let contextManager: CLIContextManager | undefined;
 	let MockedContexts: IContextContainer | undefined;
-	let MockedCommandStrings: any;
+	let MockedCommandStrings: ILocaleStrings;
 
 	beforeAll(async () => {
 		const Mocks = await import('../__mocks__/contexts');
@@ -49,8 +60,9 @@ describe('CLIContextManager', () => {
 		});
 
 		it('should use the context name as a prompt for the first found context if there are not contexts with set isInitialContext flag', async () => {
-			const ROOT_CONTEXT_NODE = (MockedContexts?.[ROOT_CONTEXT] || {}) as IContextDefinition;
-			ROOT_CONTEXT_NODE.isInitialContext = false; // RESET THE FLAG OF THE ALREADY SET ROOT CONTEXT
+			const LOBBY_CONTEXT_NODE = (MockedContexts?.[LOBBY_CONTEXT] || {}) as IContextDefinition;
+			LOBBY_CONTEXT_NODE.isInitialContext = false; // RESET THE FLAG OF THE ALREADY SET LOBBY CONTEXT
+
 			const firstContext = (Object.keys(MockedContexts || {}) || [])[0];
 			const EXPECTED_PROMPT = `${firstContext} ${PROMPT_SUFFIX} `;
 
@@ -60,11 +72,11 @@ describe('CLIContextManager', () => {
 		});
 
 		it('should use the context name as a prompt for the first found context with set isInitialContext flag', async () => {
-			const EXPECTED_PROMPT = `${MockedContexts?.[ROOT_CONTEXT].name} ${PROMPT_SUFFIX} `;
+			const EXPECTED_PROMPT = `${MockedContexts?.[LOBBY_CONTEXT].name} ${PROMPT_SUFFIX} `;
 			if (!MockedContexts) throw new Error('Mocked contexts are not defined');
 
-			MockedContexts[SETTINGS_CONTEXT].isInitialContext = true;
-			MockedContexts[ROOT_CONTEXT].isInitialContext = true;
+			MockedContexts[LEVEL_1].isInitialContext = true;
+			MockedContexts[LOBBY_CONTEXT].isInitialContext = true;
 
 			contextManager?.initialize(MockedContexts);
 			expect(contextManager?.prompt).toBe(EXPECTED_PROMPT);
@@ -94,10 +106,10 @@ describe('CLIContextManager', () => {
 
 		it('can be accessed from every context. They are global', async () => {
 			const implicitCommandNames: string[] = [];
-			for (let [key] of Object.entries(INTERNAL.commands.common)) {
+			for (const [key] of Object.entries(INTERNAL.commands.common)) {
 				implicitCommandNames.push(key);
 			}
-			for (let [key] of Object.entries(INTERNAL.commands.cli)) {
+			for (const [key] of Object.entries(INTERNAL.commands.cli)) {
 				if (!implicitCommandNames.includes(key)) implicitCommandNames.push(key);
 			}
 
@@ -105,7 +117,7 @@ describe('CLIContextManager', () => {
 
 			expect(contextContainer).toBeDefined();
 			if (contextContainer) {
-				for (let [_, value] of Object.entries(contextContainer)) {
+				for (const [, value] of Object.entries(contextContainer)) {
 					implicitCommandNames.map((implicitCommandName) =>
 						expect(Object.keys(value?.commands).includes(implicitCommandName)).toBeTruthy(),
 					);
@@ -117,36 +129,37 @@ describe('CLIContextManager', () => {
 			const commandHashes = contextManager?.['__commandHashes'] as Set<string>;
 
 			const commandIterator = (commands: ICommands) => {
-				for (const [_, command] of Object.entries(commands)) {
+				for (const [, command] of Object.entries(commands)) {
 					expect(commandHashes.has(sha1(command))).toBeTruthy();
 				}
 			};
 
 			commandIterator(INTERNAL.commands.cli);
 
-			for (const [_, context] of Object.entries(INTERNAL.contexts.cli)) {
+			for (const [, context] of Object.entries(INTERNAL.contexts.cli)) {
 				commandIterator(context.commands);
 			}
 		});
 
 		it('can be overwritten with a custom command command', async () => {
-			// The help command in the mocks in the MockedContexts[CHARACTER_CONTEXT]
+			// The help command in the mocks in the MockedContexts[LEVEL_2]
 			// is customized and overrides the implicit help command, only for the corresponding context
 			// defining a different action
 			// When the command is executed the response should contain the custom action
 			// and not the implicit one.
 			// The implicit behavior should be ignored
-			const COMMAND = 'help';
-			const customHelpCommand = MockedContexts?.[CHARACTER_CONTEXT].commands[COMMAND];
-			const implicitHelpCommand = MockedContexts?.[ROOT_CONTEXT].commands[COMMAND];
+			const COMMAND = HELP;
+			const customHelpCommand = MockedContexts?.[LEVEL_2].commands[COMMAND];
+			const implicitHelpCommand = MockedContexts?.[LEVEL_1].commands[COMMAND];
 			const mockedImplicitlyExecuteHelpAction = jest.spyOn(
-				(CLIContextManager as any).prototype,
+				CLIContextManager.prototype,
+				// @ts-expect-error Using the private property for testing purposes
 				'implicitlyExecuteHelpAction',
 			);
 
 			//1. executes the command in a context where it is not overridden, checks the actions and makes sure
 			// the so the implicit method is called
-			contextManager?.send(`${COMMAND}`);
+			contextManager?.send(COMMAND);
 			let { actions, info } = contextManager?.response || {};
 			let action = actions?.find((action) => action.name === implicitHelpCommand?.action?.name);
 			expect(info?.command?.name).toBe(COMMAND);
@@ -156,13 +169,13 @@ describe('CLIContextManager', () => {
 
 			//2. executes the command in a context where it is not overridden again
 			// and verify the implicit method is called one more time
-			contextManager?.send(`${COMMAND}`);
+			contextManager?.send(COMMAND);
 			expect(mockedImplicitlyExecuteHelpAction).toHaveBeenCalledTimes(2);
 
 			//3. execute the command in a context where it is customized
 			// and verify the implicit method has not been called one more time, but the result
 			// contains the custom action
-			contextManager?.send(`${CHARACTER_CONTEXT} ${COMMAND}`);
+			contextManager?.send([LEVEL_1, LEVEL_2, COMMAND].join(COMMAND_SPLITTING_SYMBOL));
 			actions = contextManager?.response?.actions;
 			info = contextManager?.response?.info;
 			action = actions?.find((action) => action.name === customHelpCommand?.action?.name);
@@ -173,115 +186,119 @@ describe('CLIContextManager', () => {
 		});
 
 		it("doesn't have the internal behavior if the command is overwritten", async () => {
-			contextManager?.send('help');
+			contextManager?.send(HELP);
 			const { response } = contextManager || {};
 
 			expect(response?.info);
+			// TODO
 		});
 
-		describe('back', () => {
+		describe(BACK, () => {
 			let spy: jest.SpyInstance;
 			beforeEach(async () => {
 				spy = jest.spyOn(console, 'error').mockImplementation(() => null);
-				// contextManager = new CLIContextManager();
 				contextManager?.initialize(MockedContexts || {});
 			});
 
 			afterEach(async () => {
 				if (spy) spy.mockRestore();
-				// if (contextManager) contextManager = undefined;
 				jest.resetModules();
 			});
 
 			it("shouldn't exist and throw an UnrecognizedCommand error if executed from the root context", async () => {
-				contextManager?.send('back');
+				contextManager?.send(BACK);
 				const { message, success } = contextManager?.response || {};
 				const partialError =
 					INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].ERRORS.UnrecognizedCommand.split("'")[0];
 
 				expect(success).toBeFalsy();
-				expect(message).toContain(`${partialError}'back'`);
+				expect(message).toContain(`${partialError}'${BACK}'`);
 			});
 
-			it('accepts numeric parameters only', async () => {
-				const context = CONTEXT_NAMES.ROOT.CHARACTER_CONTEXT;
-				contextManager?.send(`${context} back${COMMAND_SPLITTING_SYMBOL}1`);
+			it('accepts positive numbers parameters only', async () => {
+				const COMMAND = [LEVEL_1, BACK];
+				let PARAMETER: string | number = 1;
+				contextManager?.send([...COMMAND, PARAMETER].join(COMMAND_SPLITTING_SYMBOL));
 				let response = contextManager?.response;
 				expect(response?.success).toBeTruthy();
 
-				contextManager?.send(`${context} back${COMMAND_SPLITTING_SYMBOL}211`);
+				PARAMETER = 211;
+				contextManager?.send([...COMMAND, PARAMETER].join(COMMAND_SPLITTING_SYMBOL));
 				response = contextManager?.response;
 				expect(response?.success).toBeTruthy();
 
-				contextManager?.send(`${context} back${COMMAND_SPLITTING_SYMBOL}000`);
+				PARAMETER = '000';
+				contextManager?.send([...COMMAND, PARAMETER].join(COMMAND_SPLITTING_SYMBOL));
 				response = contextManager?.response;
 				expect(response?.success).toBeTruthy();
 
-				contextManager?.send(`${context} back${COMMAND_SPLITTING_SYMBOL}test`);
+				PARAMETER = 'test';
+				contextManager?.send([...COMMAND, PARAMETER].join(COMMAND_SPLITTING_SYMBOL));
 				response = contextManager?.response;
 
 				expect(response?.success).toBeFalsy();
 
-				contextManager?.send(`${context} back${COMMAND_SPLITTING_SYMBOL}-1`);
+				PARAMETER = -1;
+				contextManager?.send([...COMMAND, PARAMETER].join(COMMAND_SPLITTING_SYMBOL));
 				response = contextManager?.response;
 
 				expect(response?.success).toBeFalsy();
 			});
 
 			it('goes back one level if executed without parameters and we are not at the root level', async () => {
-				const BODY_PROMPT = `${MockedContexts?.[BODY_CONTEXT].name} ${PROMPT_SUFFIX} `;
-				const CHARACTER_PROMPT = `${MockedContexts?.[CHARACTER_CONTEXT].name} ${PROMPT_SUFFIX} `;
+				const CONFIG_PROMPT = `${MockedContexts?.[CONFIG].name} ${PROMPT_SUFFIX} `;
+				const L1_PROMPT = `${MockedContexts?.[LEVEL_1].name} ${PROMPT_SUFFIX} `;
 
-				contextManager?.send([CHARACTER_CONTEXT, BODY_CONTEXT].join(COMMAND_SPLITTING_SYMBOL));
+				contextManager?.send([LEVEL_1, CONFIG].join(COMMAND_SPLITTING_SYMBOL));
 				let info = contextManager?.response?.info;
 
-				expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(BODY_PROMPT);
+				expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(CONFIG_PROMPT);
 				expect(contextManager?.contextDepth).toHaveLength(3);
 				expect(info?.contextDepth).toHaveLength(3);
 
-				contextManager?.send('back');
+				contextManager?.send(BACK);
 				info = contextManager?.response?.info;
 
-				expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(CHARACTER_PROMPT);
+				expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(L1_PROMPT);
 				expect(info?.contextDepth).toHaveLength(2);
 			});
 
 			it('goes back 3 levels if 3 is passed as a param', async () => {
-				const HEAD_PROMPT = `${MockedContexts?.[HEAD_CONTEXT].name} ${PROMPT_SUFFIX} `;
-				const ROOT_PROMPT = `${MockedContexts?.[ROOT_CONTEXT].name} ${PROMPT_SUFFIX} `;
+				const BEFORE_PROMPT = `${MockedContexts?.[LEVEL_5].name} ${PROMPT_SUFFIX} `;
+				const AFTER_PROMPT = `${MockedContexts?.[LEVEL_2].name} ${PROMPT_SUFFIX} `;
+				const COMMAND = [BACK, 3]; // Trying to go 3 levels back
 
 				contextManager?.send(
-					[CHARACTER_CONTEXT, BODY_CONTEXT, HEAD_CONTEXT].join(COMMAND_SPLITTING_SYMBOL),
+					[LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5].join(COMMAND_SPLITTING_SYMBOL),
 				);
 				let info = contextManager?.response?.info;
 
-				expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(HEAD_PROMPT);
-				expect(contextManager?.contextDepth).toHaveLength(4);
-				expect(info?.contextDepth).toHaveLength(4);
+				expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(BEFORE_PROMPT);
+				expect(contextManager?.contextDepth).toHaveLength(6);
+				expect(info?.contextDepth).toHaveLength(6);
 
-				contextManager?.send(`back${COMMAND_SPLITTING_SYMBOL}3`);
+				contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 				info = contextManager?.response?.info;
 
-				expect(info?.prompt).toBe(ROOT_PROMPT);
-				expect(info?.contextDepth).toHaveLength(1);
+				expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(AFTER_PROMPT);
+				expect(info?.contextDepth).toHaveLength(3);
 			});
 
-			it('goes back to the root level and stops if bigger number is passed', async () => {
-				const CONTEXT_GRANDCHILD_PROMPT = `${MockedContexts?.[HEAD_CONTEXT].name} ${PROMPT_SUFFIX} `;
-				const ROOT_PROMPT = `${MockedContexts?.[ROOT_CONTEXT].name} ${PROMPT_SUFFIX} `;
+			it('goes back to the root level if the param is bigger then the actual depth', async () => {
+				const CONTEXT_GRANDCHILD_PROMPT = `${MockedContexts?.[CONFIG].name} ${PROMPT_SUFFIX} `;
+				const ROOT_PROMPT = `${MockedContexts?.[LOBBY_CONTEXT].name} ${PROMPT_SUFFIX} `;
+				const COMMAND = [BACK, 50]; // Trying to go 50 levels back
 
-				contextManager?.send(
-					[CHARACTER_CONTEXT, BODY_CONTEXT, HEAD_CONTEXT].join(COMMAND_SPLITTING_SYMBOL),
-				);
+				contextManager?.send([LEVEL_1, CONFIG].join(COMMAND_SPLITTING_SYMBOL));
 				let info = contextManager?.response?.info;
 
 				expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(
 					CONTEXT_GRANDCHILD_PROMPT,
 				);
-				expect(contextManager?.contextDepth).toHaveLength(4);
-				expect(info?.contextDepth).toHaveLength(4);
+				expect(contextManager?.contextDepth).toHaveLength(3);
+				expect(info?.contextDepth).toHaveLength(3);
 
-				contextManager?.send(`back${COMMAND_SPLITTING_SYMBOL}50`);
+				contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 				info = contextManager?.response?.info;
 
 				expect(info?.prompt).toBe(ROOT_PROMPT);
@@ -304,37 +321,37 @@ describe('CLIContextManager', () => {
 
 		describe('config', () => {
 			it('enters the config context', () => {
-				const COMMAND = 'config';
+				const COMMAND = CONFIG;
 				contextManager?.send(COMMAND);
-				let { prompt, response } = contextManager || {};
+				const { prompt, response } = contextManager || {};
 				const { success, message } = response || {};
 				expect(success).toBeTruthy();
 				expect(message).toBe(INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].HINTS.ProcessedCommand);
 				expect(prompt).toBe(
-					`${ROOT_CONTEXT}${PROMPT_SPLITTING_SYMBOL}${COMMAND} ${PROMPT_SUFFIX} `,
+					`${LOBBY_CONTEXT}${PROMPT_SPLITTING_SYMBOL}${COMMAND} ${PROMPT_SUFFIX} `,
 				);
 			});
 
-			it('enters the config context', () => {
-				const COMMAND = 'cfg';
-				const CONTEXT = 'config';
+			it('enters the config context using its alias', () => {
+				const CONTEXT = CONFIG;
+				const COMMAND = MockedContexts?.[LOBBY_CONTEXT]?.commands?.[CONTEXT]?.aliases?.[0];
 
 				contextManager?.send(COMMAND);
-				let { prompt, response } = contextManager || {};
+				const { prompt, response } = contextManager || {};
 				const { success, message } = response || {};
 				expect(success).toBeTruthy();
 				expect(message).toBe(INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].HINTS.ProcessedCommand);
 				expect(prompt).toBe(
-					`${ROOT_CONTEXT}${PROMPT_SPLITTING_SYMBOL}${CONTEXT} ${PROMPT_SUFFIX} `,
+					`${LOBBY_CONTEXT}${PROMPT_SPLITTING_SYMBOL}${CONTEXT} ${PROMPT_SUFFIX} `,
 				);
 			});
 
 			it('throws na error if we try to go to config if we are already there', () => {
-				const COMMAND = 'config';
+				const COMMAND = CONFIG;
 
 				contextManager?.send(COMMAND);
 				contextManager?.send(COMMAND);
-				let { response } = contextManager || {};
+				const { response } = contextManager || {};
 				const { success, message } = response || {};
 				const partialErrorMessage =
 					INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].ERRORS.UnrecognizedCommand.split("'")[0];
@@ -343,39 +360,45 @@ describe('CLIContextManager', () => {
 			});
 
 			it('validates the promptFormat command', () => {
-				const CONTEXT = 'config';
-				const COMMAND = 'promptF';
-				let commandElements = [CONTEXT, COMMAND, 'f'];
-				contextManager?.send(commandElements.join(COMMAND_SPLITTING_SYMBOL));
-				let prompt = contextManager?.prompt;
-				expect(prompt).toBe(
-					`${ROOT_CONTEXT}${PROMPT_SPLITTING_SYMBOL}${CONTEXT} ${PROMPT_SUFFIX} `,
-				);
+				const CONTEXT = CONFIG;
+				contextManager?.send(CONTEXT); // go to the correct context
 
-				commandElements = [COMMAND, 'n'];
-				contextManager?.send(commandElements.join(COMMAND_SPLITTING_SYMBOL));
-				prompt = contextManager?.prompt;
-				expect(prompt).toBe(`${CONTEXT} ${PROMPT_SUFFIX} `);
+				const testPrompt = (parameter: string, expectedPrompt: string) => {
+					const COMMAND = [PROMPT_FORMAT_COMMAND, parameter];
+					contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
+					const prompt = contextManager?.prompt;
+					expect(prompt).toBe(expectedPrompt);
+				};
 
-				commandElements = [COMMAND, 'b'];
-				contextManager?.send(commandElements.join(COMMAND_SPLITTING_SYMBOL));
-				prompt = contextManager?.prompt;
-				expect(prompt).toBe(`${PROMPT_SUFFIX} `);
+				const getExpectedPrompt = (elements: string[]) => {
+					const SUFFIX = elements.pop();
+					const PROMPT_SUFFIX =
+						(elements.length > 0 ? COMMAND_SPLITTING_SYMBOL : '') +
+						`${SUFFIX}${COMMAND_SPLITTING_SYMBOL}`;
+
+					return elements.join(PROMPT_SPLITTING_SYMBOL) + PROMPT_SUFFIX;
+				};
+
+				testPrompt('f', getExpectedPrompt([LOBBY_CONTEXT, CONTEXT, PROMPT_SUFFIX]));
+
+				testPrompt('n', getExpectedPrompt([CONTEXT, PROMPT_SUFFIX]));
+
+				testPrompt('b', getExpectedPrompt([PROMPT_SUFFIX]));
 			});
 
 			it('validates the promptSuffix command', () => {
 				const NEW_SUFFIX = '$$';
-				const COMMAND = [COMMAND_NAMES.CONFIG, COMMAND_NAMES.PROMPT_SUFFIX, NEW_SUFFIX];
+				const COMMAND = [CONFIG, PROMPT_SUFFIX_COMMAND, NEW_SUFFIX];
 				contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
-				let prompt = contextManager?.prompt;
+				const prompt = contextManager?.prompt;
 				expect(prompt).toContain(`${NEW_SUFFIX} `);
 			});
 
 			it('validates the promptPrefix command', () => {
 				const NEW_PREFIX = '{';
-				const COMMAND = [COMMAND_NAMES.CONFIG, COMMAND_NAMES.PROMPT_PREFIX, NEW_PREFIX];
+				const COMMAND = [CONFIG, PROMPT_PREFIX_COMMAND, NEW_PREFIX];
 				contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
-				let prompt = contextManager?.prompt;
+				const prompt = contextManager?.prompt;
 				expect(prompt).toContain(NEW_PREFIX);
 			});
 
@@ -383,13 +406,13 @@ describe('CLIContextManager', () => {
 				const NEW_PROMPT_SPLITTING_SYMBOL = ' : ';
 				const ADDITIONAL_DUMMY_PARAMETER = ' blbbb aaasdasd ';
 				const COMMAND = [
-					COMMAND_NAMES.CONFIG,
-					COMMAND_NAMES.PROMPT_SPLITTING_SYMBOL,
+					CONFIG,
+					PROMPT_SPLITTING_SYMBOL_COMMAND,
 					`'${NEW_PROMPT_SPLITTING_SYMBOL}'`,
 					`'${ADDITIONAL_DUMMY_PARAMETER}'`,
 				];
 				contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
-				let prompt = contextManager?.prompt;
+				const prompt = contextManager?.prompt;
 				expect(prompt).toContain(NEW_PROMPT_SPLITTING_SYMBOL);
 			});
 		});
@@ -399,17 +422,29 @@ describe('CLIContextManager', () => {
 		let spy: jest.SpyInstance;
 		beforeEach(async () => {
 			spy = jest.spyOn(console, 'error').mockImplementation(() => null);
-			// contextManager = new CLIContextManager();
 			contextManager?.initialize(MockedContexts || {});
 		});
 
 		afterEach(async () => {
 			if (spy) spy.mockRestore();
-			// if (contextManager) contextManager = undefined;
 			jest.resetModules();
 		});
 
 		it("throws an error if a command doesn't have a corresponding action", () => {
+			const contextDefinition = {
+				dummy: {
+					name: 'dummy',
+					commands: {
+						commandWithoutAnAction: {
+							name: 'commandWithoutAnAction',
+							type: 'command',
+							description: 'dummy command with no name',
+							action: {},
+						},
+					},
+				},
+			};
+			contextManager?.initialize(contextDefinition as never);
 			contextManager?.send('commandWithoutAnAction');
 			const response = contextManager?.response;
 			const { success, message } = response || {};
@@ -419,6 +454,15 @@ describe('CLIContextManager', () => {
 		});
 
 		it("throws an error if a command doesn't have its corresponding commandNode", () => {
+			const contextDefinition = {
+				dummy: {
+					name: 'dummy',
+					commands: {
+						commandWithoutANode: undefined, // Fore testing purposes
+					},
+				},
+			};
+			contextManager?.initialize(contextDefinition as never);
 			contextManager?.send('commandWithoutANode');
 			const response = contextManager?.response;
 			const { success, message } = response || {};
@@ -440,18 +484,12 @@ describe('CLIContextManager', () => {
 		});
 
 		it('throws an error message with the possible commands if the input causes unbigueuty', async () => {
-			const PARTIAL_COMMAND = 'c';
-			const FULL_COMMAND = [
-				CHARACTER_CONTEXT,
-				BODY_CONTEXT,
-				HEAD_CONTEXT,
-				HAIR_CONTEXT,
-				PARTIAL_COMMAND,
-			];
+			const PARTIAL_COMMAND = 'l';
+			const FULL_COMMAND = [LEVEL_1, PARTIAL_COMMAND];
 
 			if (!MockedContexts) throw new Error('Mocked commands are not defined');
 
-			const filteredMockedCommands = Object.keys(MockedContexts?.[HAIR_CONTEXT].commands).filter(
+			const filteredMockedCommands = Object.keys(MockedContexts?.[LEVEL_1].commands).filter(
 				(el) => el.startsWith(PARTIAL_COMMAND),
 			);
 
@@ -459,16 +497,16 @@ describe('CLIContextManager', () => {
 			const { success, message } = contextManager?.response || {};
 
 			expect(success).toBeFalsy();
-			expect(message).toContain('Unrecognized or ambiguous command');
+			expect(message).toContain('Unrecognized or ambiguous command'); // TODO use the strings
 			expect(message).toContain(filteredMockedCommands.join(', '));
 		});
 
 		it('simple input command which changes context (config)', async () => {
-			const EXPECTED_PROMPT = `${MockedContexts?.config.name} ${PROMPT_SUFFIX} `;
-			const mockedCommands = MockedContexts?.config.commands;
+			const EXPECTED_PROMPT = `${CONFIG} ${PROMPT_SUFFIX} `;
+			const mockedCommands = MockedContexts?.[CONFIG].commands;
 			if (!mockedCommands) throw new Error('Mocked commands are not defined');
 
-			contextManager?.send('config');
+			contextManager?.send(CONFIG);
 			const { success, message, info } = contextManager?.response || {};
 
 			expect(success).toBeTruthy();
@@ -476,14 +514,14 @@ describe('CLIContextManager', () => {
 			expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(EXPECTED_PROMPT);
 			expect(info?.contextDepth).toHaveLength(2); // including the root
 			expect(contextManager?.currentContext?.commands).toBeDefined();
-			contextManager?.currentContext?.commands &&
+			if (contextManager?.currentContext?.commands)
 				Object.keys(contextManager?.currentContext?.commands).forEach((cmd) => {
 					expect(mockedCommands[cmd]).toBeDefined();
 				});
 		});
 
 		it('should ignore the trailing spaces', async () => {
-			const COMMAND = MockedContexts?.config.name;
+			const COMMAND = CONFIG;
 			const EXPECTED_PROMPT = `${COMMAND} ${PROMPT_SUFFIX} `;
 			const mockedCommands = MockedContexts?.config.commands;
 			if (!mockedCommands) throw new Error('Mocked commands are not defined');
@@ -496,10 +534,10 @@ describe('CLIContextManager', () => {
 			expect(contextManager?.prompt).toContain(EXPECTED_PROMPT);
 		});
 
-		it('validates a simple command which results in single action (start)', async () => {
-			const COMMAND_NAME = 'list';
-			const EXPECTED_PROMPT = `${MockedContexts?.[ROOT_CONTEXT].name} ${PROMPT_SUFFIX} `;
-			const EXPECTED_ACTION = MockedContexts?.[ROOT_CONTEXT].commands[COMMAND_NAME].action;
+		it(`validates a simple command which results in single action (${BACK})`, async () => {
+			const COMMAND_NAME = BACK;
+			const EXPECTED_PROMPT = `${MockedContexts?.[LOBBY_CONTEXT].name} ${PROMPT_SUFFIX} `;
+			const EXPECTED_ACTION = MockedContexts?.[LOBBY_CONTEXT].commands[COMMAND_NAME].action;
 
 			contextManager?.send(COMMAND_NAME);
 			const response = contextManager?.response;
@@ -514,15 +552,15 @@ describe('CLIContextManager', () => {
 			expect(actions?.includes(EXPECTED_ACTION?.name)).toBeTruthy();
 		});
 
-		it(`validates commands changing a context within a context (${CHARACTER_CONTEXT} ${BODY_CONTEXT})`, async () => {
-			const FULL_COMMAND = `${CHARACTER_CONTEXT}${COMMAND_SPLITTING_SYMBOL}${BODY_CONTEXT}`;
+		it(`validates commands changing a context within a context (${LEVEL_1} ${LEVEL_2})`, async () => {
+			const FULL_COMMAND = [LEVEL_1, LEVEL_2];
 
 			if (!MockedContexts) throw new Error('Mocked commands are not defined');
 
-			const EXPECTED_PROMPT = `${MockedContexts?.[BODY_CONTEXT].name} ${PROMPT_SUFFIX} `;
-			const mockedCommands = MockedContexts?.[BODY_CONTEXT].commands;
+			const EXPECTED_PROMPT = `${LEVEL_2} ${PROMPT_SUFFIX} `;
+			const mockedCommands = MockedContexts?.[LEVEL_2].commands;
 
-			contextManager?.send(FULL_COMMAND);
+			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 			const { info } = contextManager?.response || {};
 
 			expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(EXPECTED_PROMPT);
@@ -533,43 +571,45 @@ describe('CLIContextManager', () => {
 			});
 		});
 
-		it(`validates when context looping back would aways make sure the root context is present at the beginning of the prompt(${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${ROOT_CONTEXT}) and back`, async () => {
+		it(`validates when context looping back would always make sure the root context is present at the beginning of the prompt and back`, async () => {
 			let FULL_COMMAND: string[] = [];
 
 			if (!MockedContexts) throw new Error('Mocked commands are not defined');
 
-			let EXPECTED_PROMPT = `${ROOT_CONTEXT} ${PROMPT_SUFFIX} `;
-			const mockedCommands = MockedContexts?.[ROOT_CONTEXT].commands;
+			let EXPECTED_PROMPT = `${LOBBY_CONTEXT} ${PROMPT_SUFFIX} `;
+			const mockedCommands = MockedContexts?.[LOBBY_CONTEXT].commands;
 			expect(contextManager?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(
 				EXPECTED_PROMPT,
 			);
 			expect(contextManager?.contextDepth).toHaveLength(1); // including the root
 
-			FULL_COMMAND = [CHARACTER_CONTEXT, BODY_CONTEXT, ROOT_CONTEXT];
+			EXPECTED_PROMPT = `${LEVEL_1} ${PROMPT_SUFFIX} `;
+			FULL_COMMAND = [LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_1];
 			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 
 			expect(contextManager?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(
 				EXPECTED_PROMPT,
 			);
-			expect(contextManager?.contextDepth).toHaveLength(3); // including the root
+			expect(contextManager?.contextDepth).toHaveLength(5); // including the root
 			expect(contextManager?.currentContext?.commands?.length).toBe(mockedCommands.length);
 
-			EXPECTED_PROMPT = `${BODY_CONTEXT} ${PROMPT_SUFFIX} `;
+			EXPECTED_PROMPT = `${LEVEL_4} ${PROMPT_SUFFIX} `;
 			contextManager?.send('back');
 			expect(contextManager?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(
 				EXPECTED_PROMPT,
 			);
-			expect(contextManager?.contextDepth).toHaveLength(3); // including the root
+			expect(contextManager?.contextDepth).toHaveLength(4); // including the root
 			expect(contextManager?.currentContext?.commands?.length).toBe(mockedCommands.length);
 
 			// Go back to root context within the body context, so we can go back to 10 levels
-			EXPECTED_PROMPT = `${ROOT_CONTEXT} ${PROMPT_SUFFIX} `;
-			contextManager?.send(`${ROOT_CONTEXT}`);
+			EXPECTED_PROMPT = `${LEVEL_1} ${PROMPT_SUFFIX} `;
+			contextManager?.send(`${LEVEL_1}`);
 			expect(contextManager?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(
 				EXPECTED_PROMPT,
 			);
-			expect(contextManager?.contextDepth).toHaveLength(3); // including the root
+			expect(contextManager?.contextDepth).toHaveLength(5); // including the root
 
+			EXPECTED_PROMPT = `${LOBBY_CONTEXT} ${PROMPT_SUFFIX} `;
 			contextManager?.send('back 10');
 			expect(contextManager?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(
 				EXPECTED_PROMPT,
@@ -579,27 +619,33 @@ describe('CLIContextManager', () => {
 		});
 
 		it('validates execution of multiple commands which results in multiple actions', async () => {
-			const FULL_COMMAND = `${CHARACTER_CONTEXT}${COMMAND_SPLITTING_SYMBOL}${BODY_CONTEXT}`;
+			const FULL_COMMAND = [
+				LEVEL_1,
+				LEVEL_2,
+				LEVEL_3,
+				LEVEL_4,
+				LEVEL_5,
+				COMMAND_NAMES.MULTI_LEVEL.LEVEL5_COMMAND1,
+			];
 
 			if (!MockedContexts) throw new Error('Mocked commands are not defined');
-			const characterAction = MockedContexts[ROOT_CONTEXT].commands?.[CHARACTER_CONTEXT].action;
-			const commandAction = MockedContexts?.[CHARACTER_CONTEXT].commands?.[BODY_CONTEXT].action;
 
-			contextManager?.send(FULL_COMMAND);
+			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 
 			const { actions } = contextManager?.response || {};
 
-			expect(actions).toHaveLength(2);
-			expect(characterAction?.name?.length).toBeGreaterThan(0);
-			expect(commandAction?.name?.length).toBeGreaterThan(0);
-			expect(actions?.filter((action) => action.name === characterAction?.name)).toHaveLength(1);
-			expect(actions?.filter((action) => action.name === commandAction?.name)).toHaveLength(1);
+			expect(actions).toHaveLength(6);
+			FULL_COMMAND.forEach((command) => {
+				expect(
+					actions?.filter((action) => action.name === MULTI_LEVEL_ACTION_NAMES[command]),
+				).toHaveLength(1);
+			});
 		});
 
 		it('shared commands among all contexts to be accessible', async () => {
-			const COMMAND_NAME = 'list';
-			const FULL_COMMAND = [CHARACTER_CONTEXT, BODY_CONTEXT, COMMAND_NAME];
-			const EXPECTED_ACTION = MockedContexts?.[BODY_CONTEXT].commands[COMMAND_NAME].action;
+			const COMMAND_NAME = HELP;
+			const FULL_COMMAND = [LEVEL_1, CONFIG, COMMAND_NAME];
+			const EXPECTED_ACTION = MockedContexts?.[CONFIG].commands[COMMAND_NAME].action;
 
 			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 			const response = contextManager?.response;
@@ -613,26 +659,20 @@ describe('CLIContextManager', () => {
 			).toBeTruthy();
 		});
 
-		it(`execute a command from a context multiple levels deeper then the current context (${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} color brown)`, async () => {
-			const COMMAND = 'color';
-			const PARAMETER = 'brown';
-			const FULL_COMMAND = [
-				CHARACTER_CONTEXT,
-				BODY_CONTEXT,
-				HEAD_CONTEXT,
-				HAIR_CONTEXT,
-				COMMAND,
-				PARAMETER,
-			];
-			const EXPECTED_PROMPT = `${MockedContexts?.[HAIR_CONTEXT].name} ${PROMPT_SUFFIX} `;
-			const mockedCommands = MockedContexts?.[HAIR_CONTEXT].commands;
+		it(`execute a command from a context multiple levels deeper then the current context`, async () => {
+			const COMMAND = COMMAND_NAMES.MULTI_LEVEL.LEVEL5_COMMAND1;
+			const PARAMETER = 'TEST';
+			const CONTEXTS = [LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5];
+			const FULL_COMMAND = [...CONTEXTS, COMMAND, PARAMETER];
+			const EXPECTED_PROMPT = `${LEVEL_5} ${PROMPT_SUFFIX} `;
+			const mockedCommands = MockedContexts?.[LEVEL_5].commands;
 			if (!mockedCommands) throw new Error('Mocked commands are not defined');
 
 			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 			const info = contextManager?.response?.info;
 
 			expect(info?.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(EXPECTED_PROMPT);
-			expect(info?.contextDepth).toHaveLength(5); // including the root context
+			expect(info?.contextDepth).toHaveLength(CONTEXTS.length + 1); // including the root context
 			expect(JSON.stringify(contextManager?.currentContext?.commands?.length)).toBe(
 				JSON.stringify(mockedCommands?.length),
 			);
@@ -644,15 +684,13 @@ describe('CLIContextManager', () => {
 		it('recognize and execute partially written commands', async () => {
 			// Get partial sub strings from the commands which should be autocompleted
 			// when full command is executed
-			const PARENT = CHARACTER_CONTEXT.substring(0, 2),
-				CHILD = BODY_CONTEXT.substring(0, 2),
-				GRANDCHILD = HEAD_CONTEXT.substring(0, 3),
-				GRANDx2CHILD = HAIR_CONTEXT.substring(0, 2),
-				COMMAND = 'col',
-				PARAMETER = 'brown';
-			const FULL_COMMAND = [PARENT, CHILD, GRANDCHILD, GRANDx2CHILD, COMMAND, PARAMETER];
-			const EXPECTED_PROMPT = `${MockedContexts?.[HAIR_CONTEXT].name} ${PROMPT_SUFFIX} `;
-			const EXPECTED_ACTION = MockedContexts?.[HAIR_CONTEXT].commands.color.action;
+			const PARTIAL1 = LEVEL_3.substring(0, 2),
+				PARTIAL2 = LEVEL_4.substring(0, 2),
+				FULL_COMMAND_NAME = COMMAND_NAMES.MULTI_LEVEL.LEVEL4_COMMAND1,
+				PARTIAL_COMMAND = FULL_COMMAND_NAME.substring(0, 3);
+			const FULL_COMMAND = [LEVEL_1, LEVEL_2, PARTIAL1, PARTIAL2, PARTIAL_COMMAND];
+			const EXPECTED_PROMPT = `${LEVEL_4} ${PROMPT_SUFFIX} `;
+			const EXPECTED_ACTION = MockedContexts?.[LEVEL_4].commands[FULL_COMMAND_NAME].action;
 
 			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 			const response = contextManager?.response;
@@ -673,21 +711,21 @@ describe('CLIContextManager', () => {
 	});
 
 	describe('validates the translation', () => {
-		let customLocales;
+		let customLocales: ILocaleStrings;
 		const INITIAL_LANGUAGE = 'de';
 		const REQUIRED_LANGUAGE = 'cz';
 		beforeEach(async () => {
 			customLocales = {
 				[INITIAL_LANGUAGE]: {
 					[I18N_EXTERNAL_NS]: { test: 'German Translation' },
-					...(MockedCommandStrings?.[INITIAL_LANGUAGE] || {}),
+					...(MockedCommandStrings?.[INITIAL_LANGUAGE] as ILocaleStrings),
 				},
 				[REQUIRED_LANGUAGE]: {
 					[I18N_EXTERNAL_NS]: { test: 'Czech Translation' },
-					...(MockedCommandStrings?.[REQUIRED_LANGUAGE] || {}),
+					...(MockedCommandStrings?.[REQUIRED_LANGUAGE] as ILocaleStrings),
 				},
 				[I18N_FALLBACK_LANGUAGE]: {
-					...(MockedCommandStrings?.[I18N_FALLBACK_LANGUAGE] || {}),
+					...(MockedCommandStrings?.[I18N_FALLBACK_LANGUAGE] as ILocaleStrings),
 				},
 			};
 
@@ -702,14 +740,26 @@ describe('CLIContextManager', () => {
 
 		it('should translate the output strings, which are meant to be translated if the language is set during initialization', () => {
 			const translated = contextManager?.['_translate']('test', { ns: I18N_EXTERNAL_NS });
-			expect(translated).toBe(customLocales[INITIAL_LANGUAGE][I18N_EXTERNAL_NS].test);
+			expect(translated).toBe(
+				(
+					(customLocales[INITIAL_LANGUAGE] as ILocaleStrings)[
+						I18N_EXTERNAL_NS
+					] as ILocaleStrings
+				).test,
+			);
 		});
 
 		it('should translate the output strings, which are meant to be translated if the language is set explicitly', () => {
 			const COMMAND = ['config', 'lang', REQUIRED_LANGUAGE];
 			contextManager?.send(COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 			const translated = contextManager?.['_translate']('test', { ns: I18N_EXTERNAL_NS });
-			expect(translated).toBe(customLocales[REQUIRED_LANGUAGE][I18N_EXTERNAL_NS].test);
+			expect(translated).toBe(
+				(
+					(customLocales[REQUIRED_LANGUAGE] as ILocaleStrings)[
+						I18N_EXTERNAL_NS
+					] as ILocaleStrings
+				).test,
+			);
 		});
 
 		it('should translate the output message based on the explicitly set language', () => {
@@ -738,7 +788,9 @@ describe('CLIContextManager', () => {
 		});
 
 		it('recognizes and executes context aliases', async () => {
-			const ALIAS = 'ui';
+			const ALIAS = MockedContexts?.[LOBBY_CONTEXT]?.commands[LEVEL_1]?.aliases?.[0];
+			expect(ALIAS?.length).toBeGreaterThan(0);
+
 			contextManager?.send(ALIAS);
 			const { success, message, info } = contextManager?.response || {};
 
@@ -748,42 +800,47 @@ describe('CLIContextManager', () => {
 			if (!info) throw new Error('Response info is not defined');
 
 			expect(info.prompt?.split(PROMPT_SPLITTING_SYMBOL)?.pop()).toBe(
-				`${MockedContexts?.[SETTINGS_CONTEXT].name} ${PROMPT_SUFFIX} `,
+				`${LEVEL_1} ${PROMPT_SUFFIX} `,
 			);
 			expect(info.contextDepth).toHaveLength(2);
 			expect(info.contextDepth?.[info.contextDepth.length - 1]).toBe(
-				MockedContexts?.[SETTINGS_CONTEXT].name,
+				MockedContexts?.[LEVEL_1].name,
 			);
 		});
 
 		it('recognizes and executes command aliases', async () => {
-			const ALIAS = 'l';
-			contextManager?.send(ALIAS); // 'go' is an alias for 'start'
+			const ALIAS = MockedContexts?.[LOBBY_CONTEXT]?.commands[BACK]?.aliases?.[0];
+			const ACTION_NAME = MockedContexts?.[LOBBY_CONTEXT]?.commands[BACK]?.action?.name;
+			expect(ALIAS?.length).toBeGreaterThan(0);
+			expect(ACTION_NAME?.length).toBeGreaterThan(0);
+
+			contextManager?.send(ALIAS);
 			const { success, message, actions } = contextManager?.response || {};
 
 			expect(success).toBeTruthy();
 			expect(message).toContain(INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].HINTS.ProcessedCommand);
 			expect(actions).toHaveLength(1);
-			expect(actions?.[0].name).toBe('listAssetsAction');
+			expect(actions?.[0].name).toBe(ACTION_NAME);
 		});
 
 		it('allows multiple aliases for the same command to be executed resulting in the same action', async () => {
-			let ALIAS = 'h';
-			const helpAction = MockedContexts?.[ROOT_CONTEXT].commands.help.action;
+			const helpAction = MockedContexts?.[LOBBY_CONTEXT].commands.help.action;
 			const implicitlyExecuteHelpAction = INTERNAL.commands.cli?.help?.action;
+			const ALIASES = MockedContexts?.[LOBBY_CONTEXT]?.commands[HELP].aliases;
+			expect(ALIASES).toBeDefined();
+			expect(ALIASES?.length).toBeGreaterThan(1);
 
-			contextManager?.send(ALIAS);
-			const { success, message, actions } = contextManager?.response || {};
-			expect(success).toBeTruthy();
-			expect(message).toContain(INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].HINTS.ProcessedCommand);
-			expect(actions).toHaveLength(1);
-			expect(actions?.[0].name).toBe(helpAction?.name);
-			expect(actions?.[0].name).toBe(implicitlyExecuteHelpAction?.name);
-
-			ALIAS = '?';
-			contextManager?.send(ALIAS);
-			const { actions: otherActions } = contextManager?.response || {};
-			expect(actions?.[0].name).toBe(otherActions?.[0]?.name);
+			ALIASES?.forEach((alias) => {
+				contextManager?.send(alias);
+				const { success, message, actions } = contextManager?.response || {};
+				expect(success).toBeTruthy();
+				expect(message).toContain(
+					INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].HINTS.ProcessedCommand,
+				);
+				expect(actions).toHaveLength(1);
+				expect(actions?.[0].name).toBe(helpAction?.name);
+				expect(actions?.[0].name).toBe(implicitlyExecuteHelpAction?.name);
+			});
 		});
 	});
 
@@ -799,11 +856,12 @@ describe('CLIContextManager', () => {
 			jest.resetModules();
 		});
 
-		it(`throws error if parameter is required but not provided (${CHARACTER_CONTEXT} age)`, async () => {
-			const COMMAND = 'age';
-			const EXPECTED_ACTION = MockedContexts?.[CHARACTER_CONTEXT].commands?.[COMMAND].action;
+		it(`throws error if parameter is required but not provided (${LEVEL_1} ${COMMAND_NAMES.MULTI_LEVEL.LEVEL1_COMMAND1})`, async () => {
+			const COMMAND = COMMAND_NAMES.MULTI_LEVEL.LEVEL1_COMMAND1;
+			const FULL_COMMAND = [LEVEL_1, COMMAND];
+			const EXPECTED_ACTION = MockedContexts?.[LEVEL_1].commands?.[COMMAND].action;
 
-			contextManager?.send(`${CHARACTER_CONTEXT}${COMMAND_SPLITTING_SYMBOL}${COMMAND}`);
+			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 			const response = contextManager?.response;
 
 			expect(EXPECTED_ACTION).toBeDefined();
@@ -813,70 +871,41 @@ describe('CLIContextManager', () => {
 			);
 		});
 
-		it(`throws error if the parameter is provided but doesn't pass validity check (${CHARACTER_CONTEXT} age test)`, async () => {
-			const COMMAND = 'age';
-			let PARAMETER = 'test';
-			const EXPECTED_ACTION = MockedContexts?.[CHARACTER_CONTEXT].commands?.[COMMAND].action;
+		it(`throws error if the parameter is provided but doesn't pass validity check (${LEVEL_5} ${COMMAND_NAMES.MULTI_LEVEL.LEVEL5_COMMAND1})`, async () => {
+			const COMMAND = COMMAND_NAMES.MULTI_LEVEL.LEVEL5_COMMAND2;
+			const TO_CONTEXT = [LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, LEVEL_5];
+			const EXPECTED_ACTION = MockedContexts?.[LEVEL_5].commands?.[COMMAND].action;
 
-			contextManager?.send(
-				`${CHARACTER_CONTEXT}${COMMAND_SPLITTING_SYMBOL}${COMMAND}${COMMAND_SPLITTING_SYMBOL}${PARAMETER}`,
-			);
-			let response = contextManager?.response;
-			expect(EXPECTED_ACTION).toBeDefined();
-			expect(response?.success).toBeFalsy();
-			expect(response?.message).toBeDefined();
+			// Go to the correct context
+			contextManager?.send(TO_CONTEXT.join(COMMAND_SPLITTING_SYMBOL));
 
-			PARAMETER = '17';
-			contextManager?.send(`${COMMAND}${COMMAND_SPLITTING_SYMBOL}${PARAMETER}`);
-			response = contextManager?.response;
-			expect(response?.success).toBeFalsy();
-			expect(response?.message).toContain('Invalid format');
-			expect(response?.message).toContain(EXPECTED_ACTION?.parameter?.hint);
-			let action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
-			expect(action).toBeUndefined();
+			// test against invalid parameters. Invalid arguments are all non numerical and numerical smaller then 32
+			['test', '17', '018', '31'].forEach((param) => {
+				contextManager?.send([COMMAND, param].join(COMMAND_SPLITTING_SYMBOL));
+				const { success, message, actions } = contextManager?.response || {};
+				expect(success).toBeFalsy();
+				expect(message).toContain('Invalid format');
+				const action = actions?.find((action) => action.name === EXPECTED_ACTION?.name);
+				expect(action).toBeUndefined();
+			});
 
-			PARAMETER = '018';
-			contextManager?.send(`${COMMAND}${COMMAND_SPLITTING_SYMBOL}${PARAMETER}`);
-			response = contextManager?.response;
-			expect(response?.success).toBeFalsy();
-			expect(response?.message).toContain('Invalid format');
-			expect(response?.message).toContain(EXPECTED_ACTION?.parameter?.hint);
-			action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
-			expect(action).toBeUndefined();
-
-			PARAMETER = '18';
-			contextManager?.send(`${COMMAND}${COMMAND_SPLITTING_SYMBOL}${PARAMETER}`);
-			response = contextManager?.response;
-			expect(response?.success).toBeTruthy();
-			action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
-			expect(action?.name).toBe(EXPECTED_ACTION?.name);
-			expect(action?.parameter?.value).toBe('18');
-
-			PARAMETER = '33';
-			contextManager?.send(`${COMMAND}${COMMAND_SPLITTING_SYMBOL}${PARAMETER}`);
-			response = contextManager?.response;
-			action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
-			expect(action?.parameter?.value).toBe('33');
-
-			PARAMETER = '121';
-			contextManager?.send(`${COMMAND}${COMMAND_SPLITTING_SYMBOL}${PARAMETER}`);
-			response = contextManager?.response;
-			action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
-			expect(action?.parameter?.value).toBe('121');
+			// test against valid parameters. Valid are all numbers from 32 and bigger
+			['32', '33', '121'].forEach((param) => {
+				contextManager?.send([COMMAND, param].join(COMMAND_SPLITTING_SYMBOL));
+				const { success, actions } = contextManager?.response || {};
+				expect(success).toBeTruthy();
+				const action = actions?.find((action) => action.name === EXPECTED_ACTION?.name);
+				expect(action?.name).toBe(EXPECTED_ACTION?.name);
+				expect(action?.parameter?.value).toBe(param);
+			});
 		});
 
-		it(`throws an error if the parameter is provided but is not among the accepted values in the set (${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} color test)`, async () => {
-			const COMMAND = 'color';
+		it(`throws an error if the parameter is provided but is not among the accepted values in the set (${LEVEL_1} ${LEVEL_2} ${COMMAND_NAMES.MULTI_LEVEL.LEVEL2_COMMAND1} test)`, async () => {
+			const COMMAND = COMMAND_NAMES.MULTI_LEVEL.LEVEL2_COMMAND1,
+				EXPECTED_ACTION = MockedContexts?.[LEVEL_2].commands?.[COMMAND].action;
 			let PARAMETER = 'test';
-			const FULL_COMMAND = [
-				CHARACTER_CONTEXT,
-				BODY_CONTEXT,
-				HEAD_CONTEXT,
-				HAIR_CONTEXT,
-				COMMAND,
-				PARAMETER,
-			];
-			const EXPECTED_ACTION = MockedContexts?.[HAIR_CONTEXT].commands?.[COMMAND].action;
+			const FULL_COMMAND = [LEVEL_1, LEVEL_2, COMMAND, PARAMETER];
+
 			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 			let response = contextManager?.response;
 
@@ -888,25 +917,19 @@ describe('CLIContextManager', () => {
 			let action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
 			expect(action).toBeUndefined();
 
-			PARAMETER = 'brown';
+			PARAMETER = 'valueC'; // Control check with one of the accepted values
 			contextManager?.send(`${COMMAND} ${PARAMETER}`);
 			response = contextManager?.response;
 			expect(response?.success).toBeTruthy();
 			action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
-			expect(action?.parameter?.value).toBe('brown');
+			expect(action?.parameter?.value).toBe(PARAMETER);
 		});
 
-		it(`throws an error if the parameter provided results in more then one possible parameters(${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} col b)`, async () => {
-			const COMMAND = 'color',
-				PARAMETER = 'b',
-				FULL_COMMAND = [
-					CHARACTER_CONTEXT,
-					BODY_CONTEXT,
-					HEAD_CONTEXT,
-					HAIR_CONTEXT,
-					COMMAND,
-					PARAMETER,
-				];
+		it(`throws an error if the parameter provided results in more then one possible parameters(${LEVEL_1} ${LEVEL_2} ${COMMAND_NAMES.MULTI_LEVEL.LEVEL2_COMMAND1} v)`, async () => {
+			const COMMAND = COMMAND_NAMES.MULTI_LEVEL.LEVEL2_COMMAND1,
+				PARAMETERS = ['valueA', 'valueB', 'valueC'],
+				PARTIAL_PARAMETER = PARAMETERS[0].substring(0, 1), // b
+				FULL_COMMAND = [LEVEL_1, LEVEL_2, COMMAND, PARTIAL_PARAMETER];
 
 			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 			const { success, message } = contextManager?.response || {};
@@ -915,42 +938,35 @@ describe('CLIContextManager', () => {
 			expect(message).toContain(
 				INTERNAL_STRINGS.en?.[I18N_DEFAULT_NS].ERRORS.UnrecognizedParameter,
 			);
-			expect(message).toContain(['black', 'brown', 'blonde'].join(', '));
+			expect(message).toContain(PARAMETERS.join(', '));
 		});
 
-		it(`make sure the default parameter is used if no parameter is provided(${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} len)`, async () => {
-			const COMMAND = 'length',
-				FULL_COMMAND = [CHARACTER_CONTEXT, BODY_CONTEXT, HEAD_CONTEXT, HAIR_CONTEXT, COMMAND];
-			const EXPECTED_ACTION = MockedContexts?.[HAIR_CONTEXT].commands?.[COMMAND].action;
+		it(`make sure the default parameter is used if no parameter is provided(${LEVEL_1} ${LEVEL_2} ${COMMAND_NAMES.MULTI_LEVEL.LEVEL2_COMMAND1})`, async () => {
+			const COMMAND = COMMAND_NAMES.MULTI_LEVEL.LEVEL2_COMMAND1,
+				FULL_COMMAND = [LEVEL_1, LEVEL_2, COMMAND];
+			const EXPECTED_ACTION = MockedContexts?.[LEVEL_2].commands?.[COMMAND].action;
 
 			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
 			const response = contextManager?.response;
 
 			expect(EXPECTED_ACTION).toBeDefined();
 			expect(response?.success).toBeTruthy();
-			let action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
+			const action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
 			expect(action?.parameter?.value).toBe(EXPECTED_ACTION?.parameter?.defaultValue);
 		});
 
-		it(`accepts and autocompletes partially written parameters if they don't cause ambiguity from the set(${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} col br)`, async () => {
-			const COMMAND = 'color',
-				PARTIAL_PARAMETER = 'br',
-				FULL_PARAMETER = 'brown',
-				FULL_COMMAND = [
-					CHARACTER_CONTEXT,
-					BODY_CONTEXT,
-					HEAD_CONTEXT,
-					HAIR_CONTEXT,
-					COMMAND,
-					PARTIAL_PARAMETER,
-				];
-			// FULL_COMMAND = `${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} ${COMMAND} ${PARTIAL_PARAMETER}`;
-			const EXPECTED_ACTION = MockedContexts?.[HAIR_CONTEXT].commands?.[COMMAND].action;
+		it(`accepts and autocompletes partially written parameters if they don't cause ambiguity from the set(${LEVEL_1} ${COMMAND_NAMES.MULTI_LEVEL.LEVEL1_COMMAND1} som)`, async () => {
+			const COMMAND = COMMAND_NAMES.MULTI_LEVEL.LEVEL1_COMMAND1,
+				FULL_PARAMETER = 'someOtherValue',
+				PARTIAL_PARAMETER = FULL_PARAMETER.substring(0, 2),
+				FULL_COMMAND = [LEVEL_1, COMMAND, PARTIAL_PARAMETER],
+				EXPECTED_ACTION = MockedContexts?.[LEVEL_1].commands?.[COMMAND].action;
+
 			contextManager?.send(FULL_COMMAND.join(COMMAND_SPLITTING_SYMBOL));
-			let response = contextManager?.response;
+			const response = contextManager?.response;
 
 			expect(response?.success).toBeTruthy();
-			let action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
+			const action = response?.actions?.find((action) => action.name === EXPECTED_ACTION?.name);
 			expect(action?.parameter?.value).toBe(FULL_PARAMETER);
 		});
 	});
@@ -968,9 +984,9 @@ describe('CLIContextManager', () => {
 			if (!MockedContexts) {
 				throw new Error('MockedContexts is undefined');
 			}
-			const mockedCommands = Object.keys(MockedContexts?.[CHARACTER_CONTEXT].commands) || [];
+			const mockedCommands = Object.keys(MockedContexts?.[LEVEL_1].commands) || [];
 
-			contextManager?.send(CHARACTER_CONTEXT);
+			contextManager?.send(LEVEL_1);
 			contextManager?.autocomplete('');
 			let response = contextManager?.response;
 
@@ -994,10 +1010,10 @@ describe('CLIContextManager', () => {
 			if (!MockedContexts) {
 				throw new Error('MockedContexts is undefined');
 			}
-			const mockedCommands = Object.keys(MockedContexts[ROOT_CONTEXT].commands);
+			const mockedCommands = Object.keys(MockedContexts[LOBBY_CONTEXT].commands);
 
 			contextManager?.autocomplete('nonExistingCommand');
-			let response = contextManager?.response;
+			const response = contextManager?.response;
 
 			expect(response?.success).toBeFalsy();
 			expect(response?.message).toContain('Unrecognized or ambiguous command');
@@ -1008,12 +1024,12 @@ describe('CLIContextManager', () => {
 			if (!MockedContexts) {
 				throw new Error('MockedContexts is undefined');
 			}
-			const PARTIAL_COMMAND = 'h';
-			const filteredMockedCommands = Object.keys(MockedContexts?.[BODY_CONTEXT].commands).filter(
+			const PARTIAL_COMMAND = LEVEL_2.substring(0, 1);
+			const filteredMockedCommands = Object.keys(MockedContexts?.[LEVEL_1].commands).filter(
 				(el) => el.startsWith(PARTIAL_COMMAND),
 			);
 
-			contextManager?.send(`${CHARACTER_CONTEXT} ${BODY_CONTEXT}`); // sets a sub context
+			contextManager?.send(LEVEL_1); // sets a sub context
 			contextManager?.autocomplete(PARTIAL_COMMAND); // executes an autocomplete request for the partial command
 			const info = contextManager?.response?.info;
 
@@ -1026,8 +1042,8 @@ describe('CLIContextManager', () => {
 			if (!MockedContexts) {
 				throw new Error('MockedContexts is undefined');
 			}
-			const PARTIAL_COMMAND = 'li';
-			const filteredMockedCommands = Object.keys(MockedContexts[ROOT_CONTEXT].commands).filter(
+			const PARTIAL_COMMAND = HELP.substring(0, 3);
+			const filteredMockedCommands = Object.keys(MockedContexts[LOBBY_CONTEXT].commands).filter(
 				(el) => el.startsWith(PARTIAL_COMMAND),
 			);
 
@@ -1040,64 +1056,62 @@ describe('CLIContextManager', () => {
 
 			expect(commandElements?.[0]).toBe(filteredMockedCommands[0]);
 			expect(commandElements).toHaveLength(1);
+			expect(commandElements?.includes(HELP)).toBeTruthy();
 		});
 
 		it('returns autocompleted command names for all partially written commands in the input string', async () => {
-			const PARTIAL_COMMAND = `${CHARACTER_CONTEXT.substring(0, 2)} ${BODY_CONTEXT.substring(0, 2)} ${HEAD_CONTEXT.substring(0, 3)} hai col br`;
-			const FULL_COMMANDS = [
-				CHARACTER_CONTEXT,
-				BODY_CONTEXT,
-				HEAD_CONTEXT,
-				HAIR_CONTEXT,
-				'color',
+			const PARAMETER = 'second';
+			const COMMAND = COMMAND_NAMES.MULTI_LEVEL.LEVEL4_COMMAND1;
+			const COMMAND_PARTS = [
+				LEVEL_1.substring(0, 2),
+				LEVEL_2,
+				LEVEL_3.substring(0, 3),
+				LEVEL_4.substring(0, 1),
+				COMMAND.substring(0, 3),
+				PARAMETER.substring(0, 1),
 			];
+			const EXPECTED = [LEVEL_1, LEVEL_2, LEVEL_3, LEVEL_4, COMMAND];
 
-			contextManager?.autocomplete(PARTIAL_COMMAND);
+			contextManager?.autocomplete(COMMAND_PARTS.join(COMMAND_SPLITTING_SYMBOL));
 			const autoCompleteOutput = contextManager?.response?.autoCompleteOutput;
 			const commandElements = autoCompleteOutput?.commands
 				?.trim()
 				?.split(COMMAND_SPLITTING_SYMBOL);
+			const parameterElements = autoCompleteOutput?.parameters?.trim();
 
 			expect(commandElements).toHaveLength(5);
-			FULL_COMMANDS.map((element, index) => {
+			EXPECTED.map((element, index) => {
 				expect(commandElements?.indexOf(element)).toBe(index);
 			});
-		});
-
-		it('returns message for the accepted parameters if the command requires parameter', async () => {
-			const PARTIAL_COMMAND = `${CHARACTER_CONTEXT} fname`;
-			const helpCommand = MockedContexts?.[CHARACTER_CONTEXT].commands.fname;
-
-			contextManager?.autocomplete(PARTIAL_COMMAND);
-			const info = contextManager?.response?.info;
-
-			expect(info?.parameter).toBeDefined();
-			expect(info?.parameter?.hint).toBe(helpCommand?.action?.parameter?.hint);
+			expect(parameterElements).toBe(PARAMETER);
 		});
 
 		it('returns the possible parameters if the command accepts a set of parameters', async () => {
-			const PARTIAL_COMMAND = `${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} color`;
-			const helpCommand = MockedContexts?.[HAIR_CONTEXT].commands.color;
+			const COMMAND = COMMAND_NAMES.MULTI_LEVEL.LEVEL1_COMMAND1;
+			const COMMAND_PARTS = [LEVEL_1, COMMAND];
+			const commandNode = MockedContexts?.[LEVEL_1].commands[COMMAND];
 
-			contextManager?.autocomplete(PARTIAL_COMMAND);
+			contextManager?.autocomplete(COMMAND_PARTS.join(COMMAND_SPLITTING_SYMBOL));
 			const info = contextManager?.response?.info;
 
 			expect(info?.parameter).toBeDefined();
 			expect(info?.parameter?.possibleValues).toStrictEqual(
-				helpCommand?.action?.parameter?.possibleValues,
+				commandNode?.action?.parameter?.possibleValues,
 			);
 		});
 
 		it('autocompletes the parameter and returns the whole parameter if the the partial input is not ambiguous for a command with a set of parameters', async () => {
-			const PARTIAL_COMMAND = `${CHARACTER_CONTEXT} ${BODY_CONTEXT} ${HEAD_CONTEXT} ${HAIR_CONTEXT} color bro`;
+			const COMMAND = COMMAND_NAMES.MULTI_LEVEL.LEVEL1_COMMAND1,
+				PARAMETER = 'someOtherValue',
+				COMMAND_PARTS = [LEVEL_1, COMMAND, PARAMETER.substring(0, 2)];
 
-			contextManager?.autocomplete(PARTIAL_COMMAND);
+			contextManager?.autocomplete(COMMAND_PARTS.join(COMMAND_SPLITTING_SYMBOL));
 			const info = contextManager?.response?.info;
 			const autoCompleteOutput = contextManager?.response?.autoCompleteOutput;
 
 			expect(info?.parameter).toBeDefined();
-			expect(info?.parameter?.value).toBe('brown');
-			expect(autoCompleteOutput?.all?.split(' ').includes('brown')).toBeTruthy();
+			expect(info?.parameter?.value).toBe(PARAMETER);
+			expect(autoCompleteOutput?.all?.split(' ').includes(PARAMETER)).toBeTruthy();
 		});
 	});
 });

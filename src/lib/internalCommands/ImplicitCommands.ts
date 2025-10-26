@@ -1,5 +1,5 @@
 import { COMMAND_NAMES } from './constants';
-import { ICommandAction, ICommandNode, ICommands, IContextDefinition } from '../types';
+import type { ICommandAction, ICommandNode, ICommands, IContextDefinition } from '../types';
 
 export const CLI_IMPLICIT_COMMANDS = {
 	[COMMAND_NAMES.HELP]: {

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+echo "*****Running unit tests******"
+
+stash_commit="$(git stash create)"
+git reset —-hard
+
+npx eslint .
+npm run test:coverage
+
+status=$?
+
+if [[ -n "${stash_commit}" ]]
+then git stash apply "${stash_commit}"
+fi
+
+exit $status
