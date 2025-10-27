@@ -1,5 +1,5 @@
 import { Terminal } from 'terminal-kit';
-import type { CLIContextManager } from '../../lib/CLIContextManager';
+import type { CLIContextManager } from '../../lib/';
 import { IContextContainer, ILocaleStrings, IResponse } from '../../lib/types';
 
 export default class CLIApp {

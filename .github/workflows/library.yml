@@ -51,7 +51,7 @@ jobs:
          # 🏗️ Build step if build-artifact flag is set
          - name: Build the library
            if: ${{ inputs.build-artifact == true }}
-           run: npm run compile:lib
+           run: export NODE_ENV=production && npm run compile
 
          - name: Package build as ZIP
            if: ${{ inputs.build-artifact == true }}

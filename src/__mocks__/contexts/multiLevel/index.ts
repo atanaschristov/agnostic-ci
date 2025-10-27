@@ -21,7 +21,7 @@ import level5Context, {
 	ACTION_NAMES as LEVEL5_ACTION_NAMES,
 } from './level5';
 
-const ENTRY_COMMAND_ACTION = 'goToLevel1Action' as const;
+const ENTRY_COMMAND_ACTION = 'goToLevel1Action';
 
 export const ACTION_NAMES = {
 	[CONTEXT_NAMES.LEVEL_1]: ENTRY_COMMAND_ACTION,

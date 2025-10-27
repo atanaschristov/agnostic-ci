@@ -1,6 +1,0 @@
-{
-	"watch": ["src/__mocks__", "src/demo/cli", "src/lib"],
-	"ignore": ["src/tests", "src/demo/web"],
-	"ext": "ts,js,cjs",
-	"exec": "npx ts-node -P src/demo/cli/tsconfig.demo.json src/demo/cli/index.ts"
-}

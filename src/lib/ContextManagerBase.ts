@@ -1,4 +1,5 @@
 import * as i18next from 'i18next';
+import type { TFunction } from 'i18next';
 import INTERNAL_LOCALES from './strings';
 import INTERNAL_COMMANDS from './internalCommands';
 
@@ -52,7 +53,7 @@ export class ContextManagerBase {
 	// TODO temporary solution. A way to instantiate it is needed. undefined is not an option
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	// @ts-ignore
-	protected _translate: i18next.TFunction<['translation', ...string[]], undefined>;
+	protected _translate: TFunction<['translation', ...string[]], undefined>;
 	protected _response?: IResponse = undefined;
 
 	public get response(): IResponse | undefined {
