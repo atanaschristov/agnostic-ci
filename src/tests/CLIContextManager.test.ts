@@ -637,7 +637,11 @@ describe('CLIContextManager', () => {
 			expect(actions).toHaveLength(6);
 			FULL_COMMAND.forEach((command) => {
 				expect(
-					actions?.filter((action) => action.name === MULTI_LEVEL_ACTION_NAMES[command]),
+					actions?.filter(
+						(action) =>
+							action.name ===
+							MULTI_LEVEL_ACTION_NAMES[command as keyof typeof MULTI_LEVEL_ACTION_NAMES],
+					),
 				).toHaveLength(1);
 			});
 		});

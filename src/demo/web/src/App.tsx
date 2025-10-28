@@ -5,10 +5,8 @@ import DemoOptionsContextManager from './components/demoOptions/DemoOptionsConte
 import { ACTIONS } from './actions';
 import { ContentScreen, IScreenItem } from './components/ContentScreen.tsx';
 import { useCallback, useMemo, useState } from 'react';
-import { OptionsContextManager } from '../../../lib/OptionsContextManager.ts';
 import { IActionResponse, IResponse } from '../../../lib/types.ts';
-import { CLIContextManager } from '../../../lib/CLIContextManager.ts';
-import { ContextManager } from '../../../lib/ContextManager.ts';
+import { ContextManager, type CLIContextManager, type OptionsContextManager } from '../../../lib/';
 import { useSchema } from './utils.ts';
 
 import './App.scss';

@@ -1,8 +1,7 @@
 import * as kit from 'terminal-kit';
 import * as Mocks from '../../__mocks__/contexts';
 
-import { CLIContextManager } from '../../lib/CLIContextManager';
-import { ContextManager } from '../../lib/ContextManager';
+import { ContextManager, type CLIContextManager } from '../../lib/';
 import CLIApp from './CLIApp';
 
 const { terminal } = kit;
