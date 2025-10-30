@@ -23,7 +23,6 @@ jobs:
            with:
               ref: ${{ github.ref_name }}
 
-         # Setup Node.js (optional, for Vite/Node projects)
          - name: Use Node.js ${{ inputs.node-version }}
            uses: actions/setup-node@v4
            with:
@@ -39,7 +38,10 @@ jobs:
               npm ci
 
          - name: Builds the demo projects
-           run: npm run build:web
+           run: export NODE_ENV=production && npm run build:web
+
+         - name: Cleans up temporary files
+           run: npm run clean:meta
 
          - name: Packages the demo into ZIP
            run: |

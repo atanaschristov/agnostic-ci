@@ -66,6 +66,14 @@ jobs:
               name: build-${{ github.event.inputs.version }}-${{ github.sha }}
               path: artifacts
 
+         - name: Unzip and publish the artifact
+           run: |
+              unzip -o artifacts/build-${{ github.event.inputs.version }}-${{ github.sha }}.zip -d library
+              cd library/lib
+              npm publish
+           env:
+              NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
          - name: Download demo artifact
            uses: actions/download-artifact@v4
            with:

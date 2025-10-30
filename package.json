@@ -1,26 +1,54 @@
 {
 	"name": "agnostic-ci",
-	"description": "Agnostic-CI(ACI) is a library for building and processing command interfaces",
 	"version": "0.0.2-test",
-	"repository": "TODO",
+	"description": "Agnostic-CI(ACI) is a library for building and processing command interfaces",
+	"main": "es2020/index.js",
+	"module": "es2020/index.mjs",
+	"types": "index.d.ts",
+	"exports": {
+		".": {
+			"types": "./index.d.ts",
+			"import": "./es2020/index.js",
+			"require": "./es2020/index.mjs"
+		},
+		"./es5": {
+			"types": "./index.d.ts",
+			"import": "./es5/index.js"
+		}
+	},
+	"files": [
+		"es2020/**/*",
+		"es5/**/*",
+		"index.d.ts",
+		"README.md",
+		"LICENSE",
+		"package.json"
+	],
 	"author": "dev <xfoocom@gmail.com>",
 	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/atanaschristov/agnostic-ci"
+	},
 	"keywords": [
 		"web",
 		"browser",
 		"library",
+		"node",
 		"util",
 		"cli",
-		"games",
 		"builder"
 	],
 	"scripts": {
 		"prestart": "cp build/pre-commit .git/hooks/ && chmod +x .git/hooks/pre-commit && echo 'hook copied'",
 		"prebuild": "node ./scripts/getFiles.js",
-		"clean": "rimraf ./dist",
+		"clean:dist": "rimraf ./dist",
+		"clean:meta": "rimraf '**/.DS_Store' '**/__MACOSX' '**/.Spotlight-V100' '**/.Trashes' '**/.fseventsd' '**/Thumbs.db' '**/ehthumbs.db' '**/desktop.ini'",
+		"clean": "npm run clean:dist",
+		"prepackage": "npx cpy-cli package.json README.md LICENSE dist/lib/",
 		"typecheck": "tsc --noEmit -p tsconfig.lib.json",
 		"compile:types": "npx dts-bundle-generator -o dist/lib/index.d.ts src/lib/index.ts --project tsconfig.dts.json --external-inlines @babel/types",
-		"compile": "npm run clean && npm run typecheck && npm run compile:types && npx tsup",
+		"compile": "npm run clean && npm run typecheck && npm run compile:types && npx tsup && npm run prepackage",
 		"compile:cli": "rimraf ./dist/demo/cli && npx tsc --build src/demo/cli/tsconfig.demo.json",
 		"run:cli:lib": "npm run compile && npm run compile:cli && node src/demo/cli/index.cjs",
 		"run:cli:ts": "npx ts-node -P src/demo/cli/tsconfig.demo.json src/demo/cli/index.ts",
@@ -41,6 +69,7 @@
 		"@types/object-hash": "^3.0.6",
 		"bem-cn": "^3.0.1",
 		"clsx": "^2.1.1",
+		"cpy-cli": "^6.0.0",
 		"dts-bundle-generator": "^9.5.1",
 		"eslint": "^9.36.0",
 		"eslint-plugin-react": "^7.37.5",
