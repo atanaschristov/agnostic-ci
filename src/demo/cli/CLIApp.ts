@@ -1,10 +1,6 @@
 import { Terminal } from 'terminal-kit';
-import type {
-	CLIContextManager,
-	IContextContainer,
-	ILocaleStrings,
-	IResponse,
-} from 'agnostic-ci/es5';
+import type { CLIContextManager } from '../../lib/';
+import { IContextContainer, ILocaleStrings, IResponse } from '../../lib/types';
 
 export default class CLIApp {
 	private terminal: Terminal;
