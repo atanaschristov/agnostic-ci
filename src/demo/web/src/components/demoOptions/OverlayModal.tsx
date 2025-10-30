@@ -1,7 +1,7 @@
 import bem from 'bem-cn';
 
 import { useCallback, useEffect, useState } from 'react';
-import { ICommandActionParameter } from '../../../../../lib/types';
+import { ICommandActionParameter } from 'agnostic-ci';
 
 import './OverlayModal.scss';
 

@@ -5,8 +5,13 @@ import DemoOptionsContextManager from './components/demoOptions/DemoOptionsConte
 import { ACTIONS } from './actions';
 import { ContentScreen, IScreenItem } from './components/ContentScreen.tsx';
 import { useCallback, useMemo, useState } from 'react';
-import { IActionResponse, IResponse } from '../../../lib/types.ts';
-import { ContextManager, type CLIContextManager, type OptionsContextManager } from '../../../lib/';
+import {
+	ContextManager,
+	type CLIContextManager,
+	type OptionsContextManager,
+	IActionResponse,
+	IResponse,
+} from 'agnostic-ci';
 import { useSchema } from './utils.ts';
 
 import './App.scss';

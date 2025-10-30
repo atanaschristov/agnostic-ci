@@ -1,5 +1,5 @@
 import { ACTION_NAMES } from '../../../../__mocks__/contexts/';
-import { IActionResponseParameter } from '../../../../lib/types';
+import { IActionResponseParameter } from 'agnostic-ci';
 import { List } from '../components/documentation/List';
 import { RenderDocument } from '../components/documentation/RenderDocument';
 

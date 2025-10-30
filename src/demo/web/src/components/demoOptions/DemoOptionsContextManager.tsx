@@ -1,9 +1,8 @@
 import bem from 'bem-cn';
 
 import { useCallback, useEffect, useState } from 'react';
-import { ICommandActionParameter, IResponse } from '../../../../../lib/types.ts';
 import { InputOptions } from './InputOptions.tsx';
-import { OptionsContextManager } from '../../../../../lib/OptionsContextManager.ts';
+import { OptionsContextManager, ICommandActionParameter, IResponse } from 'agnostic-ci';
 import { OverlayModal } from './OverlayModal.tsx';
 
 import './DemoOptionsContextManager.scss';

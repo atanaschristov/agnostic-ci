@@ -1,8 +1,7 @@
 import bem from 'bem-cn';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { CLIContextManager } from '../../../../../lib/CLIContextManager.ts';
-import { IResponse } from '../../../../../lib/types.ts';
+import { CLIContextManager, IResponse } from 'agnostic-ci';
 
 import { COMMAND_SPLITTING_SYMBOL } from '../../../../../lib/constants.ts';
 

@@ -8,12 +8,12 @@
 	"exports": {
 		".": {
 			"types": "./index.d.ts",
-			"import": "./es2020/index.js",
-			"require": "./es2020/index.mjs"
+			"import": "./es2020/index.mjs",
+			"require": "./es2020/index.js"
 		},
 		"./es5": {
 			"types": "./index.d.ts",
-			"import": "./es5/index.js"
+			"require": "./es5/index.js"
 		}
 	},
 	"files": [
@@ -87,8 +87,6 @@
 	},
 	"dependencies": {
 		"i18next": "^25.3.6",
-		"object-hash": "^3.0.0",
-		"react-markdown": "^10.1.0",
-		"remark-gfm": "^4.0.1"
+		"object-hash": "^3.0.0"
 	}
 }
