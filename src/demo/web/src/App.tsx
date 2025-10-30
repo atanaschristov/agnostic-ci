@@ -5,7 +5,9 @@ import DemoOptionsContextManager from './components/demoOptions/DemoOptionsConte
 import { ACTIONS } from './actions';
 import { ContentScreen, IScreenItem } from './components/ContentScreen.tsx';
 import { useCallback, useMemo, useState } from 'react';
+// TODO from the library
 import { ContextManager, type CLIContextManager, type OptionsContextManager } from '../../../lib/';
+// TODO from the library
 import { IActionResponse, IResponse } from '../../../lib/types';
 import { useSchema } from './utils.ts';
 
