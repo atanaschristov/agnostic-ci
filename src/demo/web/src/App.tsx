@@ -76,6 +76,16 @@ function App() {
 	return (
 		<div className={b()}>
 			<div className={b('navigation-bar')}>
+				<table className={b('navigation-bar', 'version-info')}>
+					<tr>
+						<td>DEMO</td>
+						<td>: {__DEMO_VERSION__}</td>
+					</tr>
+					<tr>
+						<td>LIB</td>
+						<td>: {__LIB_VERSION__}</td>
+					</tr>
+				</table>
 				<h2>Demos</h2>
 				<div className={b('navigation-bar', 'options')}>
 					<button

@@ -38,7 +38,10 @@ jobs:
               npm ci
 
          - name: Builds the demo projects
-           run: export NODE_ENV=production && npm run build:web
+           env:
+              NODE_ENV: production
+              LIB_VERSION: ${{ inputs.version }}
+           run: npm run build:web
 
          - name: Cleans up temporary files
            run: npm run clean:meta

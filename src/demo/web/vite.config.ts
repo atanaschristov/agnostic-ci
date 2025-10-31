@@ -7,5 +7,7 @@ export default defineConfig({
 	base: process.env.NODE_ENV === 'production' ? 'agnostic-ci' : '',
 	define: {
 		__APP_ENV__: JSON.stringify(process.env.NODE_ENV),
+		__DEMO_VERSION__: JSON.stringify(process.env.npm_package_version),
+		__LIB_VERSION__: JSON.stringify(process.env.LIB_VERSION),
 	},
 });

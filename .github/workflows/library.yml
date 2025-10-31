@@ -45,7 +45,9 @@ jobs:
 
          - name: Build the library
            if: ${{ inputs.build-artifact == true }}
-           run: export NODE_ENV=production && npm run compile
+           env:
+              NODE_ENV: production
+           run: npm run compile
 
          - name: Cleans up temporary files
            if: ${{ inputs.build-artifact == true }}
