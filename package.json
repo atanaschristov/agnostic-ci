@@ -53,7 +53,7 @@
 		"run:cli:lib": "npm run compile && npm run compile:cli && node src/demo/cli/index.cjs",
 		"run:cli:ts": "npx ts-node -P src/demo/cli/tsconfig.demo.json src/demo/cli/index.ts",
 		"run:cli": "npm run run:cli:lib",
-		"run:web": "cd src/demo/web && npm run dev",
+		"run:web": "export LIB_VERSION=$(node -p \"require('./package.json').version\") && cd src/demo/web && npm run dev",
 		"build:web": "cd src/demo/web && set NODE_ENV='production' && npm run build",
 		"test": "npm run clean && npx jest --config jest.config.js",
 		"test:watch": "npm run clean && npx jest --config jest.config.js --watch",
