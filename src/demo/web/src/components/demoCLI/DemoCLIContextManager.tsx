@@ -1,9 +1,11 @@
 import bem from 'bem-cn';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { CLIContextManager } from '../../../../../lib/CLIContextManager.ts';
+// TODO from the library
+import { CLIContextManager } from '../../../../../lib/';
+// TODO from the library
 import { IResponse } from '../../../../../lib/types.ts';
-
+// TODO from the library
 import { COMMAND_SPLITTING_SYMBOL } from '../../../../../lib/constants.ts';
 
 import './DemoCLIContextManager.scss';

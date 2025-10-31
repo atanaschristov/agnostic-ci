@@ -1,7 +1,8 @@
 import bem from 'bem-cn';
 
 import { useCallback, useEffect, useState } from 'react';
-import { ICommandActionParameter } from '../../../../../lib/types';
+// TODO from the library
+import { ICommandActionParameter } from '../../../../../lib/types.ts';
 
 import './OverlayModal.scss';
 

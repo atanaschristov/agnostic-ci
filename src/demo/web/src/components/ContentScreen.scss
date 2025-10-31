@@ -2,16 +2,23 @@
 	width: 100%;
 	overflow: auto;
 
+	.welcome-message {
+		white-space: pre-wrap;
+		color: rgba(97, 218, 251, 0.667);
+
+		li {
+			margin-bottom: 0.5em;
+		}
+	}
+
 	&__item {
-		padding: 0 0 0.5em 1em;
+		padding-bottom: 0.6em;
 
 		&_error {
 			color: #ed4337;
 		}
 	}
 
-	//  TODO CHECK THOSE SCROLL STYLES
-	/* The track (outer background) */
 	&::-webkit-scrollbar-track {
 		background: #202020;
 		border-radius: 12px; /* makes the outer part rounded */
@@ -20,7 +27,7 @@
 		background: #303030;
 		border: 2px solid transparent;
 		background-clip: content-box;
-		border-radius: 12px; /* makes the outer part rounded */
+		border-radius: 12px; /* makes the thumb rounded */
 	}
 
 	&::-webkit-scrollbar {

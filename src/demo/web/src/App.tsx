@@ -5,8 +5,10 @@ import DemoOptionsContextManager from './components/demoOptions/DemoOptionsConte
 import { ACTIONS } from './actions';
 import { ContentScreen, IScreenItem } from './components/ContentScreen.tsx';
 import { useCallback, useMemo, useState } from 'react';
-import { IActionResponse, IResponse } from '../../../lib/types.ts';
+// TODO from the library
 import { ContextManager, type CLIContextManager, type OptionsContextManager } from '../../../lib/';
+// TODO from the library
+import { IActionResponse, IResponse } from '../../../lib/types';
 import { useSchema } from './utils.ts';
 
 import './App.scss';
@@ -76,12 +78,24 @@ function App() {
 			<div className={b('navigation-bar')}>
 				<h2>Demos</h2>
 				<div className={b('navigation-bar', 'options')}>
-					<button onClick={() => onButtonClick('cli')}>CLI</button>
-					<button onClick={() => onButtonClick('options')}>Options</button>
+					<button
+						onClick={() => onButtonClick('cli')}
+						className={b('navigation-bar', 'options', { selected: selectedDemo === 'cli' })}
+					>
+						Command Line Interface
+					</button>
+					<button
+						onClick={() => onButtonClick('options')}
+						className={b('navigation-bar', 'options', {
+							selected: selectedDemo === 'options',
+						})}
+					>
+						Command Options Interface
+					</button>
 				</div>
 			</div>
 			<div className={b('demo-container')}>
-				<ContentScreen messageItem={screenItem} className={selectedDemo} />
+				<ContentScreen messageItem={screenItem} selectedDemo={selectedDemo} />
 				{selectedDemo === 'cli' && contextManagers[selectedDemo] && (
 					<DemoCLIContextManager
 						contextManager={contextManagers[selectedDemo] as CLIContextManager}
