@@ -1,8 +1,10 @@
 import bem from 'bem-cn';
-import { JSX, useEffect, useRef, useState } from 'react';
+import { JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { VueScreen } from './VueScreen';
 
 import './ContentScreen.scss';
+import { CLIWelcomeScreen } from './CLIWelcomeScreen';
+import { OptionsWelcomeScreen } from './OptionsWelcomeScreen';
 
 export interface IScreenItem {
 	success: boolean;
@@ -11,21 +13,21 @@ export interface IScreenItem {
 
 interface IContentScreenProps {
 	messageItem?: IScreenItem;
-	className: string;
+	selectedDemo: string;
 }
 
 export const ContentScreen = (props: IContentScreenProps) => {
-	const { messageItem, className } = props;
-	const b = bem('content-screen');
+	const { messageItem, selectedDemo } = props;
+	const b = useMemo(() => bem('content-screen'), []);
 	const bottomOfTheScreenRef = useRef<null | HTMLInputElement>(null);
 
-	const [screenContent, setScreenContent] = useState<Array<JSX.Element>>([<VueScreen key={0} />]);
+	const [screenContent, setScreenContent] = useState<Array<JSX.Element>>([]);
 
 	useEffect(() => {
 		if (bottomOfTheScreenRef) {
 			bottomOfTheScreenRef.current?.scrollIntoView({ behavior: 'smooth' });
 		}
-	}, [screenContent, className]);
+	}, [screenContent, selectedDemo]);
 
 	useEffect(() => {
 		const { success, content } = messageItem || {};
@@ -50,10 +52,12 @@ export const ContentScreen = (props: IContentScreenProps) => {
 				addItem(content);
 			}
 		}
-	}, [messageItem]);
+	}, [b, messageItem]);
 
 	return (
-		<div className={b({ mode: className })}>
+		<div className={b({ mode: selectedDemo })}>
+			<VueScreen />
+			{selectedDemo === 'cli' ? <CLIWelcomeScreen /> : <OptionsWelcomeScreen />}
 			{screenContent}
 			<div ref={bottomOfTheScreenRef}></div>
 		</div>

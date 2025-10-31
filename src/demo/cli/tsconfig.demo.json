@@ -3,7 +3,7 @@
 		"module": "commonjs",
 		"target": "es5",
 		"lib": ["es2020", "dom"],
-		"outDir": "../../../dist/",
+		"outDir": "../../../dist/demo/",
 		"moduleResolution": "node",
 		"baseUrl": "../../",
 		"resolveJsonModule": true
