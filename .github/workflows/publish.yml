@@ -57,7 +57,7 @@ jobs:
 
          - name: Extract library
            run: |
-              unzip -o ${{ steps.download.outputs.file }} -d lib
+              unzip -o ${{ steps.download.outputs.file }}
 
          - name: Extract library
            env:
