@@ -1,6 +1,6 @@
 {
 	"name": "agnostic-ci",
-	"version": "0.0.1-2",
+	"version": "0.0.1-3",
 	"description": "Agnostic-CI(ACI) is a library for building and processing command interfaces",
 	"main": "es2020/index.js",
 	"module": "es2020/index.mjs",
