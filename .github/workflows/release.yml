@@ -36,30 +36,6 @@ jobs:
            with:
               ref: ${{ github.ref_name }}
 
-         - name: Create git tag
-           id: tag
-           run: |
-              TAG="${{ github.event.inputs.version }}"
-              VERSION="v${{ github.event.inputs.version }}"
-
-              echo "Checking if tag $VERSION exists..."
-              git fetch origin --tags --force --prune
-
-              if git rev-parse "$VERSION" >/dev/null 2>&1; then
-                echo "✅ Tag $VERSION already exists. Skipping tag creation."
-               else
-                  echo "🏷️ Releasing version $VERSION"
-
-                  git config user.name "${{ github.actor }}"
-                  git config user.email "${{ github.actor }}@users.noreply.github.com"
-
-                  # This handles package.json + commit + tag
-                  npm version $TAG -m "auto commit: release v%s"
-
-                  # Push commit + tag
-                  git push origin ${{ github.ref_name }} --follow-tags
-               fi
-
          - name: Download build artifact
            uses: actions/download-artifact@v4
            with:
