@@ -43,6 +43,33 @@ jobs:
          - name: Run tests
            run: npm run test:coverage -- --ci --reporters=default
 
+         #  Creating tag before build to ensure the compiled code has the correct version
+         #  Later publishing the library relies the artifacts are compiled with the updated package.json
+         - name: Create git tag
+           if: ${{ inputs.build-artifact == true }}
+           id: tag
+           run: |
+              TAG="${{ github.event.inputs.version }}"
+              VERSION="v${{ github.event.inputs.version }}"
+
+              echo "Checking if tag $VERSION exists..."
+              git fetch origin --tags --force --prune
+
+              if git rev-parse "$VERSION" >/dev/null 2>&1; then
+                echo "✅ Tag $VERSION already exists. Skipping tag creation."
+               else
+                  echo "🏷️ Releasing version $VERSION"
+
+                  git config user.name "${{ github.actor }}"
+                  git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+                  # This handles package.json + commit + tag
+                  npm version $TAG -m "auto commit: release v%s"
+
+                  # Push commit + tag
+                  git push origin ${{ github.ref_name }} --follow-tags
+               fi
+
          - name: Build the library
            if: ${{ inputs.build-artifact == true }}
            env:
