@@ -55,15 +55,14 @@ jobs:
                  fs.writeFileSync(asset.name, Buffer.from(resp.data));
                  core.setOutput('file', asset.name);
 
-         - name: Extract library
+         - name: Extract the lib artifact
            run: |
               unzip -o ${{ steps.download.outputs.file }}
 
-         - name: Extract library
+         - name: Publish the library
            env:
               NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
            run: |
               cd lib
               npm config set //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
-              npm pack --dry-run
-              # npm publish --access public
+              npm publish --access public
