@@ -7,6 +7,15 @@ on:
             description: 'Version number for this publish (e.g. 1.2.3)'
             required: true
             type: string
+         release-tag:
+            description: 'The tag used by npm determining if the package to be published will be treated as prerelease or latest (alpha, beta, latest)'
+            required: true
+            type: 'choice'
+            default: 'latest'
+            options:
+               - latest
+               - beta
+               - alpha
          node-version:
             description: 'Node.js version to use'
             default: '24'
@@ -65,4 +74,4 @@ jobs:
            run: |
               cd lib
               npm config set //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
-              npm publish --access public
+              npm publish --access public --tag ${{ release-tag }}
