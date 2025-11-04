@@ -15,11 +15,16 @@ const getSchema = () => {
 	};
 };
 
+const getStrings = () => {
+	return undefined; // TODO
+};
+
 export const useSchema = () => {
 	return useMemo(() => {
 		const SCHEMA = getSchema();
+		const LOCALES = getStrings();
 		return {
-			LOCALES: undefined,
+			LOCALES,
 			SCHEMA,
 		};
 	}, []);

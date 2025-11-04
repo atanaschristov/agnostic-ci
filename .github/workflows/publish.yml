@@ -7,6 +7,15 @@ on:
             description: 'Version number for this publish (e.g. 1.2.3)'
             required: true
             type: string
+         release-tag:
+            description: 'The tag used by npm determining if the package to be published will be treated as prerelease or latest (alpha, beta, latest)'
+            required: true
+            type: 'choice'
+            default: 'latest'
+            options:
+               - latest
+               - beta
+               - alpha
          node-version:
             description: 'Node.js version to use'
             default: '24'
@@ -55,15 +64,14 @@ jobs:
                  fs.writeFileSync(asset.name, Buffer.from(resp.data));
                  core.setOutput('file', asset.name);
 
-         - name: Extract library
+         - name: Extract the lib artifact
            run: |
               unzip -o ${{ steps.download.outputs.file }}
 
-         - name: Extract library
+         - name: Publish the library
            env:
               NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
            run: |
               cd lib
               npm config set //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
-              npm pack --dry-run
-              # npm publish --access public
+              npm publish --access public --tag ${{ github.event.inputs.release-tag }}

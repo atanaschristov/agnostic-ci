@@ -1,4 +1,4 @@
-name: 'Demo Web CI'
+name: 'Web Demo CI'
 
 on:
    workflow_call:

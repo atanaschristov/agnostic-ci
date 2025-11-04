@@ -7,6 +7,7 @@ import SETTINGS_STRINGS from './settings/strings/';
 import { IContextContainer } from '../../lib/types';
 import { SHARED_COMMAND_NAMES } from './sharedCommands';
 import lobby, {
+	ACTION_NAMES as LOBBY_ACTION_NAMES,
 	CONTEXT_NAMES as LOBBY_CONTEXT_NAMES,
 	COMMAND_NAMES as LOBBY_COMMAND_NAMES,
 } from './lobby/';
@@ -59,6 +60,7 @@ export const COMMAND_NAMES = {
 export const ACTION_NAMES = {
 	DOCUMENTATION: DOCUMENTATION_ACTION_NAMES,
 	MULTI_LEVEL: MULTI_LEVEL_ACTION_NAMES,
+	LOBBY: LOBBY_ACTION_NAMES,
 };
 
 export default {

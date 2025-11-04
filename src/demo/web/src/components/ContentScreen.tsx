@@ -1,10 +1,10 @@
 import bem from 'bem-cn';
 import { JSX, useEffect, useMemo, useRef, useState } from 'react';
+import { useAppContext } from '../contexts/useAppContext';
 import { VueScreen } from './VueScreen';
+import WelcomeScreen from './WelcomeScreen';
 
 import './ContentScreen.scss';
-import { CLIWelcomeScreen } from './CLIWelcomeScreen';
-import { OptionsWelcomeScreen } from './OptionsWelcomeScreen';
 
 export interface IScreenItem {
 	success: boolean;
@@ -13,13 +13,14 @@ export interface IScreenItem {
 
 interface IContentScreenProps {
 	messageItem?: IScreenItem;
-	selectedDemo: string;
 }
 
 export const ContentScreen = (props: IContentScreenProps) => {
-	const { messageItem, selectedDemo } = props;
 	const b = useMemo(() => bem('content-screen'), []);
 	const bottomOfTheScreenRef = useRef<null | HTMLInputElement>(null);
+
+	const { messageItem } = props;
+	const { selectedDemo } = useAppContext() || {};
 
 	const [screenContent, setScreenContent] = useState<Array<JSX.Element>>([]);
 
@@ -57,7 +58,7 @@ export const ContentScreen = (props: IContentScreenProps) => {
 	return (
 		<div className={b({ mode: selectedDemo })}>
 			<VueScreen />
-			{selectedDemo === 'cli' ? <CLIWelcomeScreen /> : <OptionsWelcomeScreen />}
+			<WelcomeScreen />
 			{screenContent}
 			<div ref={bottomOfTheScreenRef}></div>
 		</div>
