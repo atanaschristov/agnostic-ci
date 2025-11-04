@@ -4,6 +4,7 @@ import { IActionResponseParameter } from '../../../../lib/types';
 import { List } from '../components/documentation/List';
 import { RenderDocument } from '../components/documentation/RenderDocument';
 
+import DocumentationEntry from '../components/documentation/DocumentationEntry';
 import TodoScreen from '../components/TodoScreen';
 import WelcomeScreen from '../components/WelcomeScreen';
 
@@ -13,6 +14,9 @@ const todo = import.meta.glob('../../../../../TODO.md', { as: 'raw' });
 export const ACTIONS = {
 	['implicitlyExecuteHelpAction']: async (parameter?: IActionResponseParameter) => {
 		return parameter?.value && <div style={{ whiteSpace: 'pre-wrap' }}>{parameter?.value}</div>;
+	},
+	[ACTION_NAMES.DOCUMENTATION.DOC_ENTRY]: async () => {
+		return <DocumentationEntry />;
 	},
 	[ACTION_NAMES.DOCUMENTATION.LIST]: async () => {
 		const paths = Object.keys(docs);

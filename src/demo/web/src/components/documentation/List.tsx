@@ -8,7 +8,7 @@ export const List = (props: IListProps) => {
 	return (
 		<ol>
 			{paths.map((path) => (
-				<li key={path}>{path.replace('../../../../assets/documentation/', '')}</li>
+				<li key={path}>{path.replace('../../assets/documentation/', '')}</li>
 			))}
 		</ol>
 	);

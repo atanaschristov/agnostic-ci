@@ -1,4 +1,5 @@
 export const ACTION_NAMES = {
+	DOC_ENTRY: 'documentationEntryAction' as const,
 	LIST: 'listDocumentsAction' as const,
 	SHOW: 'showDocumentAction' as const,
 };

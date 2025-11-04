@@ -5,6 +5,9 @@ export const ContextEntryCommand = {
 	name: COMMAND_NAMES.DOC,
 	type: 'context',
 	aliases: ['m'],
+	action: {
+		name: ACTION_NAMES.DOC_ENTRY,
+	},
 } as ICommandNode;
 
 export default {
