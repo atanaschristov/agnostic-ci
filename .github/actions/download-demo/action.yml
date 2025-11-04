@@ -1,9 +1,0 @@
-name: 'Download Release Asset'
-description: 'Download a demo asset from a GitHub release'
-inputs:
-   version:
-      description: 'Release version (e.g. 1.2.3)'
-      required: true
-runs:
-   using: 'node24'
-   main: 'index.js'

@@ -4,7 +4,11 @@ import { IActionResponseParameter } from '../../../../lib/types';
 import { List } from '../components/documentation/List';
 import { RenderDocument } from '../components/documentation/RenderDocument';
 
+import TodoScreen from '../components/TodoScreen';
+import WelcomeScreen from '../components/WelcomeScreen';
+
 const docs = import.meta.glob('../../assets/documentation/*.md', { as: 'raw' });
+const todo = import.meta.glob('../../../../../TODO.md', { as: 'raw' });
 
 export const ACTIONS = {
 	['implicitlyExecuteHelpAction']: async (parameter?: IActionResponseParameter) => {
@@ -17,5 +21,11 @@ export const ACTIONS = {
 	},
 	[ACTION_NAMES.DOCUMENTATION.SHOW]: async (parameter: unknown) => {
 		return await RenderDocument({ docs, path: (parameter as { value?: string })?.value });
+	},
+	[ACTION_NAMES.LOBBY.LOBBY_WELCOME_SCREEN]: async () => {
+		return <WelcomeScreen />;
+	},
+	[ACTION_NAMES.LOBBY.LOBBY_TODO]: async () => {
+		return await TodoScreen({ todoDocument: Object.values(todo)[0] });
 	},
 };

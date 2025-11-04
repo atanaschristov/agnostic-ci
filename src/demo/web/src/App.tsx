@@ -1,8 +1,10 @@
 import bem from 'bem-cn';
+import AppVersion from './components/AppVersion.tsx';
 import DemoCLIContextManager from './components/demoCLI/DemoCLIContextManager.tsx';
 import DemoOptionsContextManager from './components/demoOptions/DemoOptionsContextManager.tsx';
 
 import { ACTIONS } from './actions';
+import { useAppContext } from './contexts/useAppContext.ts';
 import { ContentScreen, IScreenItem } from './components/ContentScreen.tsx';
 import { useCallback, useMemo, useState } from 'react';
 // TODO from the library
@@ -22,12 +24,11 @@ export interface IResponseHistory {
 
 function App() {
 	const b = bem('app');
-	const INITIAL_MANAGER: DemoOptions = 'cli';
-	const [selectedDemo, setSelectedDemo] = useState<DemoOptions>(INITIAL_MANAGER);
 	const [screenItem, setScreenItem] = useState<IScreenItem | undefined>(undefined);
+	const { selectedDemo, setSelectedDemo } = useAppContext() || {};
 
 	const onButtonClick = (target: DemoOptions) => {
-		setSelectedDemo(target);
+		setSelectedDemo?.(target);
 	};
 
 	const commandActions = useMemo(() => {
@@ -76,16 +77,7 @@ function App() {
 	return (
 		<div className={b()}>
 			<div className={b('navigation-bar')}>
-				<table className={b('navigation-bar', 'version-info')}>
-					<tr>
-						<td>DEMO</td>
-						<td>: {__DEMO_VERSION__}</td>
-					</tr>
-					<tr>
-						<td>LIB</td>
-						<td>: {__LIB_VERSION__}</td>
-					</tr>
-				</table>
+				<AppVersion />
 				<h2>Demos</h2>
 				<div className={b('navigation-bar', 'options')}>
 					<button
@@ -105,7 +97,7 @@ function App() {
 				</div>
 			</div>
 			<div className={b('demo-container')}>
-				<ContentScreen messageItem={screenItem} selectedDemo={selectedDemo} />
+				<ContentScreen messageItem={screenItem} />
 				{selectedDemo === 'cli' && contextManagers[selectedDemo] && (
 					<DemoCLIContextManager
 						contextManager={contextManagers[selectedDemo] as CLIContextManager}

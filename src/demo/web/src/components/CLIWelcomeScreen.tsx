@@ -14,10 +14,6 @@ export const CLIWelcomeScreen = () => {
 					Type '<code>help</code>' or <code>?</code> to see available commands.
 				</li>
 				<li>
-					Press '<code>Tab</code> to autocomplete next command or argument or to show the
-					available commands
-				</li>
-				<li>
 					When an executed command refers to a context, its action will be requested and the
 					context and the prompt will change giving access to its own context specific
 					commands.
