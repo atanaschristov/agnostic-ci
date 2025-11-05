@@ -5,8 +5,8 @@ import { ContextEntryCommand as DocumentationEntryCommand } from '../docs';
 import { EntryCommand as MultiLevelEntryCommand } from '../multiLevel';
 
 export const ACTION_NAMES = {
-	LOBBY_WELCOME_SCREEN: 'actionWelcomeScreen' as const,
-	LOBBY_TODO: 'actionTodo' as const,
+	LOBBY_WELCOME_SCREEN: 'welcomeScreenAction' as const,
+	LOBBY_TODO: 'todoAction' as const,
 };
 
 export const CONTEXT_NAMES = {

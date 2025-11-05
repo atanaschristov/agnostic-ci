@@ -1,7 +1,6 @@
-import { useAppContext } from '../contexts/useAppContext';
-
-import { CLIWelcomeScreen } from './CLIWelcomeScreen';
-import { OptionsWelcomeScreen } from './OptionsWelcomeScreen';
+import { CLIWelcomeScreen } from '../demoCLI/CLIWelcomeScreen';
+import { OptionsWelcomeScreen } from '../demoOptions/OptionsWelcomeScreen';
+import { useAppContext } from '../../contexts/useAppContext';
 
 const WelcomeScreen = () => {
 	const { selectedDemo } = useAppContext() || {};

@@ -1,15 +1,15 @@
 import ReactMarkdown from 'react-markdown';
-import { CustomPreComponent } from './documentation/CustomPreComponent';
+import { CustomPreComponent } from '../../../components/shared/CustomPreComponent';
 import remarkGfm from 'remark-gfm';
 
-interface TODOScreenProps {
-	todoDocument: () => Promise<string>;
+interface TodoActionProps {
+	todoDocument: () => Promise<unknown>;
 }
 
-const TodoScreen = async (props: TODOScreenProps) => {
+const TodoAction = async (props: TodoActionProps) => {
 	const { todoDocument } = props;
 
-	const content = await todoDocument();
+	const content = (await todoDocument()) as string;
 
 	return (
 		<ReactMarkdown
@@ -23,4 +23,4 @@ const TodoScreen = async (props: TODOScreenProps) => {
 	);
 };
 
-export default TodoScreen;
+export default TodoAction;

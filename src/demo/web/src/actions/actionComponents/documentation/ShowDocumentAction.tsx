@@ -1,14 +1,14 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-import { CustomPreComponent } from './CustomPreComponent';
+import { CustomPreComponent } from '../../../components/shared/CustomPreComponent';
 
 interface IRenderDocumentParameter {
-	docs?: Record<string, () => Promise<string>>;
+	docs?: Record<string, () => Promise<unknown>>;
 	path?: string;
 }
 
-export const RenderDocument = async (props: IRenderDocumentParameter) => {
+const ShowDocumentAction = async (props: IRenderDocumentParameter) => {
 	const { docs, path } = props;
 
 	const filtered = [];
@@ -27,7 +27,7 @@ export const RenderDocument = async (props: IRenderDocumentParameter) => {
 		return <div>Documentation not found.</div>;
 	}
 
-	const content = await filtered[0](); // Get the first filtered element. Ignore the rest
+	const content = (await filtered[0]()) as string; // Get the first filtered element. Ignore the rest
 
 	return (
 		<ReactMarkdown
@@ -40,3 +40,5 @@ export const RenderDocument = async (props: IRenderDocumentParameter) => {
 		</ReactMarkdown>
 	);
 };
+
+export default ShowDocumentAction;

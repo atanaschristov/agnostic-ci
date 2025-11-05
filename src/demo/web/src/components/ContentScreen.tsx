@@ -1,8 +1,8 @@
 import bem from 'bem-cn';
 import { JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { useAppContext } from '../contexts/useAppContext';
-import { VueScreen } from './VueScreen';
-import WelcomeScreen from './WelcomeScreen';
+import { VueScreen } from './shared/VueScreen';
+import WelcomeScreen from './shared/WelcomeScreen';
 
 import './ContentScreen.scss';
 
@@ -36,10 +36,13 @@ export const ContentScreen = (props: IContentScreenProps) => {
 			const isString = typeof content === 'string' || content instanceof String;
 
 			const addItem = (resolvedContent: JSX.Element | string) => {
+				const isError = !success && isString;
+				const isEven = screenContent.length % 2 === 0;
+
 				setScreenContent((currentScreenContent) => [
 					...currentScreenContent,
 					<div
-						className={b('item', { error: !success && isString })}
+						className={b('item', { error: isError }, { even: isEven })}
 						key={currentScreenContent.length}
 					>
 						{resolvedContent}

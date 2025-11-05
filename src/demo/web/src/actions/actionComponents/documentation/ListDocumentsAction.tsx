@@ -2,7 +2,7 @@ interface IListProps {
 	paths: string[];
 }
 
-export const List = (props: IListProps) => {
+const ListDocumentsAction = (props: IListProps) => {
 	const { paths } = props;
 
 	return (
@@ -13,3 +13,5 @@ export const List = (props: IListProps) => {
 		</ol>
 	);
 };
+
+export default ListDocumentsAction;

@@ -1,6 +1,6 @@
 import bem from 'bem-cn';
-import { useMemo } from 'react';
 import { ExtraProps } from 'react-markdown';
+import { useMemo } from 'react';
 
 import './CustomPreComponent.scss';
 

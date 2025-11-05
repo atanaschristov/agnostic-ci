@@ -8,8 +8,11 @@ import ShowDocumentAction from './actionComponents/documentation/ShowDocumentAct
 import TodoAction from './actionComponents/lobby/TodoAction';
 import WelcomeScreenAction from './actionComponents/lobby/WelcomeScreenAction';
 
-const docs = import.meta.glob('../../assets/documentation/*.md', { as: 'raw' });
-const todo = import.meta.glob('../../../../../TODO.md', { as: 'raw' });
+const docs = import.meta.glob('../../assets/documentation/*.md', {
+	query: '?raw',
+	import: 'default',
+});
+const todo = import.meta.glob('../../../../../TODO.md', { query: '?raw', import: 'default' });
 
 export const ACTIONS = {
 	['implicitlyExecuteHelpAction']: async (parameter?: IActionResponseParameter) => {
